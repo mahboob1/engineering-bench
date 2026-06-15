@@ -1,0 +1,10 @@
+server:
+  port: 8080
+spring:
+  profiles:
+    active: local
+
+app:
+  openai-key: ${OPENAI_API_KEY:}
+  qdrant-host: localhost
+  qdrant-port: 6334

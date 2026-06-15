@@ -1,0 +1,26 @@
+# Local configuration
+src/main/resources/application-local.yml
+.env
+
+# IntelliJ
+.idea/
+*.iml
+
+# Gradle
+.gradle/
+build/
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
+
+# Java
+*.class
+
+# Maven (if used)
+target/
+
+# VS Code
+.vscode/
