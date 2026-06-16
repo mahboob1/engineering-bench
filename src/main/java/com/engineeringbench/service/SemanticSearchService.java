@@ -1,5 +1,6 @@
 package com.engineeringbench.service;
 
+import com.engineeringbench.model.SearchResult;
 import com.google.common.util.concurrent.ListenableFuture;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
@@ -54,7 +55,7 @@ public class SemanticSearchService {
                 .matches();
     }
 
-    public List<String> search(String question) {
+    public List<String> searchString(String question) {
 
         var queryEmbedding = embeddingService.embed(question);
 
@@ -89,5 +90,78 @@ public class SemanticSearchService {
         System.out.println(result);
 
         return List.of(result.toString());
+    }
+
+    public List<SearchResult> search(String question) {
+
+        var queryEmbedding = embeddingService.embed(question);
+
+        float[] embeddingArray = queryEmbedding.vector();
+
+        List<Float> vector = new ArrayList<>(embeddingArray.length);
+        for (float v : embeddingArray) {
+            vector.add(v);
+        }
+
+        ListenableFuture<?> future =
+                qdrantClient.searchAsync(
+                        SearchPoints.newBuilder()
+                                .setCollectionName("engineering_docs")
+                                .addAllVector(vector)
+                                .setLimit(1)
+                                .setWithPayload(
+                                        Points.WithPayloadSelector.newBuilder()
+                                                .setEnable(true)
+                                                .build()
+                                )
+                                .build()
+                );
+
+//        Object result;
+//        Points.SearchResponse response;
+        List<Points.ScoredPoint> points;
+        try {
+//            result = future.get();
+//            response =
+//                    (Points.SearchResponse) future.get();
+            points =
+                    (List<Points.ScoredPoint>) future.get();
+        } catch (Exception e) {
+            throw new RuntimeException("Qdrant search failed", e);
+        }
+
+//        System.out.println(result);
+
+//        return List.of(result.toString());
+        List<SearchResult> results =
+                new ArrayList<>();
+
+        for (var point : points) {
+
+            String content =
+                    point.getPayloadMap()
+                            .getOrDefault(
+                                    "text_segment",
+                                    null
+                            )
+                            .getStringValue();
+
+            String source =
+                    point.getPayloadMap()
+                            .getOrDefault("source",
+                                    null
+                            )
+                            .getStringValue();
+
+            results.add(
+                    new SearchResult(
+                            content,
+                            source,
+                            point.getScore()
+                    )
+            );
+        }
+
+        return results;
     }
 }

@@ -25,6 +25,8 @@ public class ChatService {
         String prompt = """
                 Answer ONLY from the supplied context.
 
+                Include the source filename used.
+                
                 Context:
                 %s
 

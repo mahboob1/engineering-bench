@@ -1,5 +1,6 @@
 package com.engineeringbench;
 
+import com.engineeringbench.model.SearchResult;
 import com.engineeringbench.service.SemanticSearchService;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
@@ -30,8 +31,13 @@ public class SearchController {
 //                .toList();
 //    }
 
+    @GetMapping("/searchString")
+    public List<String> searchString(@RequestParam String question) {
+        return service.searchString(question);
+    }
+
     @GetMapping("/search")
-    public List<String> search(@RequestParam String question) {
+    public List<SearchResult> search(@RequestParam String question) {
         return service.search(question);
     }
 }

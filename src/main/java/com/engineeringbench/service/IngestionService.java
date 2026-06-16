@@ -2,6 +2,7 @@ package com.engineeringbench.service;
 
 import com.engineeringbench.model.DocumentChunk;
 import com.engineeringbench.store.InMemoryChunkStore;
+import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import org.apache.pdfbox.Loader;
@@ -62,8 +63,16 @@ public class IngestionService {
 
             var embedding =
                     embeddingService.embed(c);
+
+            Metadata metadata = new Metadata();
+
+            metadata.put(
+                    "source",
+                    file.getOriginalFilename()
+            );
+
             var segment =
-                    TextSegment.from(c);
+                    TextSegment.from(c, metadata);
 
             embeddingStore.add(
                     embedding,
