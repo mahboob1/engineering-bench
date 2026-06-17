@@ -42,12 +42,12 @@ public class IngestionService {
         String text =
                 extractText(file);
 
-        List<String> chunkTexts =
-                chunker.chunk(
-                        text,
-                        800,
-                        100);
+        ingestText(
+                file.getOriginalFilename(),
+                text);
 
+// in memory store, not needed to save as we are directly adding to embedding store
+       /*
         List<DocumentChunk> chunks =
                 new ArrayList<>();
 
@@ -60,33 +60,9 @@ public class IngestionService {
                             c
                     )
             );
+        } */
 
-            var embedding =
-                    embeddingService.embed(c);
-
-            Metadata metadata = new Metadata();
-
-            metadata.put(
-                    "source",
-                    file.getOriginalFilename()
-            );
-
-            var segment =
-                    TextSegment.from(c, metadata);
-
-            embeddingStore.add(
-                    embedding,
-                    segment
-            );
-
-            System.out.println(
-                    "Stored chunk in Qdrant. Length="
-                            + c.length()
-            );
-
-        }
-
-        store.saveAll(chunks);
+//        store.saveAll(chunks); in memory store, not needed to save as we are directly adding to embedding store
     }
 
     private String extractText(
@@ -106,5 +82,42 @@ public class IngestionService {
 
         return new String(
                 file.getBytes());
+    }
+
+    public void ingestText(
+            String source,
+            String text) {
+
+        List<String> chunkTexts =
+                chunker.chunk(
+                        text,
+                        800,
+                        100);
+
+        for (String c : chunkTexts) {
+
+            Metadata metadata =
+                    new Metadata();
+
+            metadata.put(
+                    "source",
+                    source);
+
+            TextSegment segment =
+                    TextSegment.from(
+                            c,
+                            metadata);
+
+            var embedding =
+                    embeddingService.embed(c);
+
+            embeddingStore.add(
+                    embedding,
+                    segment);
+            System.out.println(
+                    "Stored chunk in Qdrant. Length="
+                            + c.length()
+            );
+        }
     }
 }
