@@ -57,9 +57,19 @@ public class AskController {
                                         + c.content())
                         .collect(Collectors.joining("\n\n"));
 
-        return chatService.answer(
+        String answer = chatService.answer(
                 question,
                 context
         );
+
+        String citations =
+                chunks.stream()
+                        .map(SearchResult::source)
+                        .distinct()
+                        .collect(Collectors.joining("\n"));
+
+        return answer
+                + "\n\nSources:\n"
+                + citations;
     }
 }

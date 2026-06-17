@@ -108,7 +108,7 @@ public class SemanticSearchService {
                         SearchPoints.newBuilder()
                                 .setCollectionName("engineering_docs")
                                 .addAllVector(vector)
-                                .setLimit(1)
+                                .setLimit(5)
                                 .setWithPayload(
                                         Points.WithPayloadSelector.newBuilder()
                                                 .setEnable(true)

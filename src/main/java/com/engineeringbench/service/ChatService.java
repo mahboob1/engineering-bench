@@ -25,8 +25,11 @@ public class ChatService {
         String prompt = """
                 Answer ONLY from the supplied context.
 
-                Include the source filename used.
+                If the answer is not present in the context,
+                respond with:
                 
+                "I could not find the answer in the repository."
+                  
                 Context:
                 %s
 
