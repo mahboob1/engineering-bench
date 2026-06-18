@@ -19,5 +19,6 @@ dependencies {
     implementation 'dev.langchain4j:langchain4j-qdrant:1.0.0-beta3'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.apache.pdfbox:pdfbox:3.0.2'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

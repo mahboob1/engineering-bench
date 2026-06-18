@@ -28,4 +28,15 @@ public class RepositoryController {
 
         return "repository indexed";
     }
+
+    @PostMapping("/github")
+    public String ingestGithub(
+            @RequestParam String repoUrl)
+            throws Exception {
+
+        service
+                .ingestGithubUrl(repoUrl);
+
+        return "Repository indexed";
+    }
 }

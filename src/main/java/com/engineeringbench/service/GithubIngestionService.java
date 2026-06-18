@@ -1,5 +1,6 @@
 package com.engineeringbench.service;
 
+import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -18,9 +19,32 @@ public class GithubIngestionService {
         this.ingestionService = ingestionService;
     }
 
+    // For GitHub repositories
+    public void ingestGithubUrl(
+            String repoUrl)
+            throws Exception {
+
+        Path tempDir =
+                Files.createTempDirectory(
+                        "github-repo");
+
+        Git.cloneRepository()
+                .setURI(repoUrl)
+                .setDirectory(
+                        tempDir.toFile())
+                .call();
+
+        ingestRepository(
+                tempDir.toString());
+    }
+
+    // For local repositories
     public void ingestRepository(
             String repoPath)
             throws Exception {
+
+        Path repoRoot =
+                Path.of(repoPath);
 
         try (Stream<Path> paths =
                      Files.walk(
@@ -35,9 +59,14 @@ public class GithubIngestionService {
                             String content =
                                     Files.readString(file);
 
+                            String source =
+                                    repoRoot
+                                            .relativize(file)
+                                            .toString();
+
+
                             ingestionService.ingestText(
-                                    file.getFileName()
-                                            .toString(),
+                                    source,
                                     content
                             );
 
