@@ -42,7 +42,7 @@ public class IngestionService {
         String text =
                 extractText(file);
 
-        ingestText(
+        ingestText(file.getOriginalFilename(),
                 file.getOriginalFilename(),
                 text);
 
@@ -85,6 +85,7 @@ public class IngestionService {
     }
 
     public void ingestText(
+            String repository,
             String source,
             String text) {
 
@@ -95,9 +96,11 @@ public class IngestionService {
                         100);
 
         for (String c : chunkTexts) {
-
             Metadata metadata =
                     new Metadata();
+            metadata.put(
+                    "repository",
+                    repository);
 
             metadata.put(
                     "source",

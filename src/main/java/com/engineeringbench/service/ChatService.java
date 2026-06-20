@@ -19,10 +19,14 @@ public class ChatService {
     }
 
     public String answer(
+            String history,
             String question,
             String context) {
 
         String prompt = """
+                Conversation:
+                %s
+                
                 Answer ONLY from the supplied context.
 
                 If the answer is not present in the context,
@@ -30,17 +34,18 @@ public class ChatService {
                 
                 "I could not find the answer in the repository."
                   
-                Context:
-                %s
-
                 Question:
                 %s
+
+                Context:
+                %s
+                
                 """.formatted(
-                context,
-                question
+                history,
+                question,
+                context
         );
 
-//        return chatModel.generate(prompt);
         return chatModel.chat(prompt);
     }
 }

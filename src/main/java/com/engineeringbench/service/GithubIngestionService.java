@@ -55,6 +55,8 @@ public class GithubIngestionService {
                     .forEach(file -> {
 
                         try {
+                            String repository =
+                                    repoNameFromUrl(repoPath);
 
                             String content =
                                     Files.readString(file);
@@ -66,6 +68,7 @@ public class GithubIngestionService {
 
 
                             ingestionService.ingestText(
+                                    repository,
                                     source,
                                     content
                             );
@@ -96,5 +99,21 @@ public class GithubIngestionService {
                 || name.endsWith(".properties")
                 || name.endsWith(".md")
                 || name.endsWith(".gradle");
+    }
+
+    private String repoNameFromUrl(String repoUrl) {
+
+        String repoName =
+                repoUrl.substring(
+                        repoUrl.lastIndexOf('/') + 1);
+
+        if (repoName.endsWith(".git")) {
+            repoName =
+                    repoName.substring(
+                            0,
+                            repoName.length() - 4);
+        }
+
+        return repoName;
     }
 }

@@ -92,7 +92,7 @@ public class SemanticSearchService {
         return List.of(result.toString());
     }
 
-    public List<SearchResult> search(String question) {
+    public List<SearchResult> search(String question, String repository) {
 
         var queryEmbedding = embeddingService.embed(question);
 
@@ -103,9 +103,9 @@ public class SemanticSearchService {
             vector.add(v);
         }
 
-        ListenableFuture<?> future =
-                qdrantClient.searchAsync(
-                        SearchPoints.newBuilder()
+        //ListenableFuture<?> future =
+                //qdrantClient.searchAsync(
+        SearchPoints.Builder builder = SearchPoints.newBuilder()
                                 .setCollectionName("engineering_docs")
                                 .addAllVector(vector)
                                 .setLimit(5)
@@ -113,10 +113,39 @@ public class SemanticSearchService {
                                         Points.WithPayloadSelector.newBuilder()
                                                 .setEnable(true)
                                                 .build()
-                                )
-                                .build()
-                );
+                                );;
 
+        if (repository != null &&
+                !repository.isBlank()) {
+
+            builder.setFilter(
+                    Points.Filter.newBuilder()
+                            .addMust(
+                                    Points.Condition.newBuilder()
+                                            .setField(
+                                                    Points.FieldCondition
+                                                            .newBuilder()
+                                                            .setKey(
+                                                                    "repository")
+                                                            .setMatch(
+                                                                    Points.Match
+                                                                            .newBuilder()
+                                                                            .setKeyword(
+                                                                                    repository)
+                                                                            .build()
+                                                            )
+                                                            .build()
+                                            )
+                                            .build()
+                            )
+                            .build()
+            );
+        }
+
+        ListenableFuture<?> future =
+                qdrantClient.searchAsync(
+                        builder.build()
+                );
 //        Object result;
 //        Points.SearchResponse response;
         List<Points.ScoredPoint> points;
@@ -140,23 +169,24 @@ public class SemanticSearchService {
 
             String content =
                     point.getPayloadMap()
-                            .getOrDefault(
-                                    "text_segment",
-                                    null
-                            )
+                            .getOrDefault("text_segment", null)
                             .getStringValue();
 
             String source =
                     point.getPayloadMap()
-                            .getOrDefault("source",
-                                    null
-                            )
+                            .getOrDefault("source", null)
+                            .getStringValue();
+
+            String repositoryName =
+                    point.getPayloadMap()
+                            .getOrDefault("repository", null)==null?"":point.getPayloadMap().getOrDefault("repository", null)
                             .getStringValue();
 
             results.add(
                     new SearchResult(
                             content,
                             source,
+                            repositoryName,
                             point.getScore()
                     )
             );

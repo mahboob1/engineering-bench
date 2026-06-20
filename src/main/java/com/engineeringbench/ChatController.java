@@ -13,8 +13,8 @@ public class ChatController {
     this.retrievalService = retrievalService;
   }
 
-  @PostMapping("/chat")
-  public String chat(@RequestBody QuestionRequest req) {
+  @PostMapping("/chatImMemory")
+  public String chatImMemory(@RequestBody QuestionRequest req) {
     return retrievalService.answer(req.question());
   }
 
