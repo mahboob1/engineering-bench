@@ -19,14 +19,11 @@ public class ChatService {
     }
 
     public String answer(
-            String history,
             String question,
-            String context) {
+            String context,
+            String history) {
 
-        String prompt = """
-                Conversation:
-                %s
-                
+        String prompt = """ 
                 Answer ONLY from the supplied context.
 
                 If the answer is not present in the context,
@@ -40,10 +37,12 @@ public class ChatService {
                 Context:
                 %s
                 
+                Conversation History:
+                %s
                 """.formatted(
-                history,
                 question,
-                context
+                context,
+                history
         );
 
         return chatModel.chat(prompt);
