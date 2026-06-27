@@ -8,13 +8,19 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class QdrantConfig {
 
+    private final QdrantProperties props;
+
+    public QdrantConfig(QdrantProperties props) {
+        this.props = props;
+    }
+
     @Bean
     public QdrantClient qdrantClient() {
 
         return new QdrantClient(
                 QdrantGrpcClient.newBuilder(
-                        "localhost",
-                        6334,
+                        props.getQdrantHost(),
+                        props.getQdrantPort(),
                         false
                 ).build()
         );
