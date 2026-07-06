@@ -15,8 +15,8 @@ public class UploadController {
   }
 
   @PostMapping("/upload")
-  public String upload(@RequestParam MultipartFile file) throws Exception {
-    ingestionService.ingest(file);
+  public String upload(@RequestParam String collection, @RequestParam MultipartFile file) throws Exception {
+    ingestionService.ingest(collection, file);
     return "uploaded";
   }
 }

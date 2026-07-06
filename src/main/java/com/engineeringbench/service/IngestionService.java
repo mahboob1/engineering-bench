@@ -36,13 +36,14 @@ public class IngestionService {
     }
 
     public void ingest(
+            String collection,
             MultipartFile file)
             throws Exception {
 
         String text =
                 extractText(file);
 
-        ingestText(file.getOriginalFilename(),
+        ingestText(collection, file.getOriginalFilename(),
                 file.getOriginalFilename(),
                 text);
 
@@ -85,6 +86,7 @@ public class IngestionService {
     }
 
     public void ingestText(
+            String collection,
             String repository,
             String source,
             String text) {

@@ -20,10 +20,12 @@ public class RepositoryController {
 
     @PostMapping("/repo")
     public String ingestRepo(
+            @RequestParam String collection,
             @RequestParam String path)
             throws Exception {
 
         service.ingestRepository(
+                collection,
                 path);
 
         return "repository indexed";
@@ -31,11 +33,12 @@ public class RepositoryController {
 
     @PostMapping("/github")
     public String ingestGithub(
+            @RequestParam String collection,
             @RequestParam String repoUrl)
             throws Exception {
 
         service
-                .ingestGithubUrl(repoUrl);
+                .ingestGithubUrl(collection, repoUrl);
 
         return "Repository indexed";
     }

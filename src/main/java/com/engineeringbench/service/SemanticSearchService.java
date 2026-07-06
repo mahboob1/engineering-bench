@@ -92,7 +92,7 @@ public class SemanticSearchService {
         return List.of(result.toString());
     }
 
-    public List<SearchResult> search(String question, String repository) {
+    public List<SearchResult> search(String collection, String question, String repository) {
 
         var queryEmbedding = embeddingService.embed(question);
 
@@ -106,7 +106,7 @@ public class SemanticSearchService {
         //ListenableFuture<?> future =
                 //qdrantClient.searchAsync(
         SearchPoints.Builder builder = SearchPoints.newBuilder()
-                                .setCollectionName("engineering_docs")
+                                .setCollectionName(collection)
                                 .addAllVector(vector)
                                 .setLimit(5)
                                 .setWithPayload(

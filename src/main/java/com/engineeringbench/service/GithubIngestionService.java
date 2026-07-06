@@ -21,6 +21,7 @@ public class GithubIngestionService {
 
     // For GitHub repositories
     public void ingestGithubUrl(
+            String collection,
             String repoUrl)
             throws Exception {
 
@@ -35,11 +36,12 @@ public class GithubIngestionService {
                 .call();
 
         ingestRepository(
-                tempDir.toString());
+                collection, tempDir.toString());
     }
 
     // For local repositories
     public void ingestRepository(
+            String collection,
             String repoPath)
             throws Exception {
 
@@ -68,6 +70,7 @@ public class GithubIngestionService {
 
 
                             ingestionService.ingestText(
+                                    collection,
                                     repository,
                                     source,
                                     content

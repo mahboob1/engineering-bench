@@ -53,10 +53,11 @@ public class AskController {
 
     @GetMapping("/ask")
     public String ask(
+            @RequestParam String collection,
             @RequestParam String question, @RequestParam(required = false) String repository) {
 
         List<SearchResult> chunks =
-                searchService.search(question, repository);
+                searchService.search(collection, question, repository);
 
         String context =
                 chunks.stream()
@@ -85,6 +86,7 @@ public class AskController {
 
     @PostMapping("/chat")
     public String chat(
+            @RequestParam String collection,
             @RequestBody
             ChatRequest request) {
 
@@ -94,6 +96,7 @@ public class AskController {
 
         List<SearchResult> chunks =
                 searchService.search(
+                        collection,
                         request.question(),
                         request.repository());
 
