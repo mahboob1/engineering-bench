@@ -10,10 +10,27 @@ sourceCompatibility = '21'
 
 repositories {
     mavenCentral()
+    // Contains official Spring AI milestone builds
+    maven { url 'https://repo.spring.io/milestone' }
+
+    // Contains active development builds and recent MCP updates
+    maven { url 'https://repo.spring.io/snapshot' }
+}
+
+// CRITICAL: Explicitly registers the master version definitions for Spring AI
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.ai:spring-ai-bom:1.0.0-SNAPSHOT'
+    }
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // MCP Server
+    implementation 'org.springframework.ai:spring-ai-starter-mcp-server-webmvc'
+    // REQUIRED FIX: Explicitly adds the missing @McpTool and @McpToolParam packages
+    implementation 'org.springframework.ai:spring-ai-mcp'
+
     implementation 'dev.langchain4j:langchain4j:1.0.0-beta3'
     implementation 'dev.langchain4j:langchain4j-open-ai:1.0.0-beta3'
     implementation 'dev.langchain4j:langchain4j-qdrant:1.0.0-beta3'

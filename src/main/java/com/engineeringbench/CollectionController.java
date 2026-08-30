@@ -2,6 +2,8 @@ package com.engineeringbench;
 
 import com.engineeringbench.model.CollectionRequest;
 import com.engineeringbench.service.QdrantCollectionService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,14 +21,14 @@ public class CollectionController {
     }
 
     @PostMapping
-    public void create(
-            @RequestBody
-            CollectionRequest request)
-            throws Exception {
+    public ResponseEntity<String> create(@RequestBody CollectionRequest request) throws Exception {
+        service.createCollection(request.collectionName());
 
-        service.createCollection(
-                request.collectionName());
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body("Collection '" + request.collectionName() + "' initialization initiated.");
     }
+
 
     @DeleteMapping("/{name}")
     public void delete(

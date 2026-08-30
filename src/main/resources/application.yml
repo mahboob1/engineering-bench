@@ -4,6 +4,21 @@ server:
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+  ai:
+    mcp:
+      server:
+        name: engineering-bench-mcp
+        version: 1.0.0
+        type: SYNC
+        protocol: STREAMABLE
+        instructions: >
+          Engineering Bench MCP server providing semantic search
+          over engineering documentation.
+        capabilities:
+          tool: true
+          resource: false
+          prompt: false
+          completion: false
 
 app:
   openai-key: ${OPENAI_API_KEY}
