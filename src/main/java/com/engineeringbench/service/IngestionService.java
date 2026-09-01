@@ -5,6 +5,8 @@ import com.engineeringbench.store.InMemoryChunkStore;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.qdrant.QdrantEmbeddingStore;
+import io.qdrant.client.QdrantClient;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
@@ -21,18 +23,18 @@ public class IngestionService {
     private final InMemoryChunkStore store;
 
     private final EmbeddingService embeddingService;
-    private final EmbeddingStore<TextSegment> embeddingStore;
+    private final QdrantClient qdrantClient;
 
     public IngestionService(
             TextChunker chunker,
             InMemoryChunkStore store,
             EmbeddingService embeddingService,
-            EmbeddingStore<TextSegment> embeddingStore) {
+            QdrantClient qdrantClient) {
 
         this.chunker = chunker;
         this.store = store;
         this.embeddingService = embeddingService;
-        this.embeddingStore = embeddingStore;
+        this.qdrantClient = qdrantClient;
     }
 
     public void ingest(
@@ -70,15 +72,35 @@ public class IngestionService {
             MultipartFile file)
             throws Exception {
 
-        if (file.getOriginalFilename()
-                .endsWith(".pdf")) {
+        String filename = file.getOriginalFilename();
 
-            var pdf =
-                    Loader.loadPDF(
-                            file.getBytes());
+        if (filename == null) {
+            throw new IllegalArgumentException("File name is missing");
+        }
 
-            return new PDFTextStripper()
-                    .getText(pdf);
+        String lowerName = filename.toLowerCase();
+
+
+        if (lowerName.endsWith(".pdf")) {
+
+            try (var pdf = Loader.loadPDF(file.getBytes())) {
+                return new PDFTextStripper()
+                        .getText(pdf);
+            }
+        }
+
+        if (lowerName.endsWith(".docx")) {
+
+            try (var inputStream = file.getInputStream();
+                 var document =
+                         new org.apache.poi.xwpf.usermodel.XWPFDocument(inputStream)) {
+
+                var extractor =
+                        new org.apache.poi.xwpf.extractor.XWPFWordExtractor(
+                                document);
+
+                return extractor.getText();
+            }
         }
 
         return new String(
@@ -96,6 +118,12 @@ public class IngestionService {
                         text,
                         800,
                         100);
+
+        QdrantEmbeddingStore embeddingStore =
+                QdrantEmbeddingStore.builder()
+                        .client(qdrantClient)
+                        .collectionName(collection)
+                        .build();
 
         for (String c : chunkTexts) {
             Metadata metadata =

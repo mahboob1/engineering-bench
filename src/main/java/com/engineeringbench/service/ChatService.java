@@ -20,26 +20,68 @@ public class ChatService {
 
     public String answer(
             String question,
+            String context) {
+
+        String prompt = """
+            Answer ONLY from the supplied Context.
+
+            The Context contains information retrieved from the
+            selected Qdrant collection.
+
+            If the answer is not present in the supplied Context,
+            respond with exactly:
+
+            "I could not find the answer in the selected collection."
+
+            Do not use your general knowledge to answer the question.
+
+            Question:
+            %s
+
+            Context:
+            %s
+            """.formatted(
+                question,
+                context
+        );
+
+        return chatModel.chat(prompt);
+    }
+
+    public String answerWithHistory(
+            String question,
             String context,
             String history) {
 
-        String prompt = """ 
-                Answer ONLY from the supplied context.
+        String prompt = """
+            Answer ONLY from the supplied Context.
 
-                If the answer is not present in the context,
-                respond with:
-                
-                "I could not find the answer in the repository."
-                  
-                Question:
-                %s
+            The Context contains information retrieved from the
+            selected Qdrant collection.
 
-                Context:
-                %s
-                
-                Conversation History:
-                %s
-                """.formatted(
+            Conversation History is provided only to help understand
+            follow-up questions, references, and conversational context.
+
+            Do NOT use Conversation History as a source of factual
+            information. Repository or document facts must come only
+            from the supplied Context.
+
+            If the answer is not present in the supplied Context,
+            respond with exactly:
+
+            "I could not find the answer in the selected collection."
+
+            Do not use your general knowledge to answer the question.
+
+            Question:
+            %s
+
+            Context:
+            %s
+
+            Conversation History:
+            %s
+            """.formatted(
                 question,
                 context,
                 history

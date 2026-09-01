@@ -37,5 +37,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.apache.pdfbox:pdfbox:3.0.2'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r'
+    implementation 'org.apache.poi:poi-ooxml:5.4.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

@@ -45,8 +45,7 @@ public class AskController {
 
         return chatService.answer(
                 question,
-                context,
-                repository
+                context
         );
     }
 
@@ -68,8 +67,7 @@ public class AskController {
 
         String answer = chatService.answer(
                 question,
-                context,
-                repository
+                context
         );
 
         String citations =
@@ -123,11 +121,18 @@ public class AskController {
                                 Collectors.joining(
                                         "\n\n"));
 
+        String citations =
+                chunks.stream()
+                        .map(SearchResult::source)
+                        .distinct()
+                        .collect(Collectors.joining("\n"));
+
         String answer =
-                chatService.answer(
+                chatService.answerWithHistory(
                         request.question(),
                         context,
-                        history);
+                        history
+                );
 
         session.add(
                 new ChatMessage(
@@ -143,6 +148,8 @@ public class AskController {
                 )
         );
 
-        return answer;
+        return answer
+                + "\n\nSources:\n"
+                + citations;
     }
 }

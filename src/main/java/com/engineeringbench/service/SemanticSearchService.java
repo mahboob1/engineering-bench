@@ -20,40 +20,37 @@ import static io.qdrant.client.grpc.Points.SearchPoints.newBuilder;
 public class SemanticSearchService {
 
     private final EmbeddingService embeddingService;
-    private final EmbeddingStore<TextSegment> embeddingStore;
     private final QdrantClient qdrantClient;
 
     public SemanticSearchService(
             EmbeddingService embeddingService,
-            EmbeddingStore<TextSegment> embeddingStore,
             QdrantClient qdrantClient) {
 
         this.embeddingService = embeddingService;
-        this.embeddingStore = embeddingStore;
         this.qdrantClient = qdrantClient;
     }
 
-    public List<EmbeddingMatch<TextSegment>>
-    searchEmbed(String question) {
-
-        var queryEmbedding =
-                embeddingService.embed(question);
-        System.out.println(
-                "Query dimensions = "
-                        + queryEmbedding.vector().length
-        );
-
-        var request =
-                EmbeddingSearchRequest.builder()
-                        .queryEmbedding(queryEmbedding)
-                        .maxResults(5)
-                        .minScore(0.0)
-                        .build();
-
-        return embeddingStore
-                .search(request)
-                .matches();
-    }
+//    public List<EmbeddingMatch<TextSegment>>
+//    searchEmbed(String question) {
+//
+//        var queryEmbedding =
+//                embeddingService.embed(question);
+//        System.out.println(
+//                "Query dimensions = "
+//                        + queryEmbedding.vector().length
+//        );
+//
+//        var request =
+//                EmbeddingSearchRequest.builder()
+//                        .queryEmbedding(queryEmbedding)
+//                        .maxResults(5)
+//                        .minScore(0.0)
+//                        .build();
+//
+//        return embeddingStore
+//                .search(request)
+//                .matches();
+//    }
 
     public List<String> searchString(String question) {
 
