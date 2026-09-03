@@ -152,4 +152,28 @@ public class AskController {
                 + "\n\nSources:\n"
                 + citations;
     }
+
+    @PostMapping("/analyze")
+    public String analyze(
+            @RequestParam String collection,
+            @RequestBody ChatRequest request) {
+
+        List<SearchResult> chunks =
+                searchService.search(
+                        collection,
+                        request.question(),
+                        request.repository());
+
+        String context =
+                chunks.stream()
+                        .map(c ->
+                                "Repository: " + c.repository()
+                                        + "\nSource: " + c.source()
+                                        + "\n" + c.content())
+                        .collect(Collectors.joining("\n\n"));
+
+        return chatService.analyze(
+                request.question(),
+                context);
+    }
 }
