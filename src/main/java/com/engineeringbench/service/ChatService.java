@@ -95,48 +95,54 @@ public class ChatService {
             String context) {
 
         String prompt = """
-            You are an expert software engineer and software architect.
+        You are an expert software engineer and software architect.
 
-            Analyze the supplied code and documentation to answer the
-            user's engineering question.
+        Analyze the supplied software repository evidence to answer
+        the user's engineering question.
 
-            The Context contains information retrieved from the selected
-            Qdrant collection.
+        The Context contains files/chunks retrieved from the selected
+        Qdrant collection using multiple analysis-oriented searches.
 
-            Use the supplied Context as the primary evidence.
+        The Context may NOT represent the entire repository.
 
-            You may reason about:
-            - relationships between classes and components
-            - dependencies
-            - control flow
-            - responsibilities
-            - APIs
-            - configuration
-            - data flow
-            - architectural implications
-            - potential risks
-            - likely changes required to implement a feature
+        Do not describe the repository as a whole unless the supplied
+        Context provides sufficient evidence.
 
-            Clearly distinguish between:
-            - Facts directly supported by the Context
-            - Reasonable inferences from the Context
-            - Information that cannot be determined from the Context
+        Use the supplied Context as the primary evidence.
 
-            Do not invent files, classes, APIs, dependencies,
-            configurations, or behavior that are not supported by
-            the Context.
+        Clearly distinguish between:
 
-            Do not use general knowledge as evidence about this
-            specific repository.
+        1. Facts directly supported by the retrieved Context
+        2. Reasonable inferences from the retrieved Context
+        3. Unknowns that cannot be determined from the retrieved Context
 
-            Provide a structured engineering analysis.
+        If there is insufficient evidence for an important conclusion,
+        explicitly state:
 
-            Question / Feature Request:
-            %s
+        "Insufficient repository context to determine this."
 
-            Context:
-            %s
-            """.formatted(
+        Do not invent files, classes, APIs, dependencies,
+        configurations, database behavior, or application behavior.
+
+        Do not infer or label architectural patterns such as microservices,
+        event-driven architecture, CQRS, hexagonal architecture, clean
+        architecture, layered architecture, or distributed systems unless
+        the retrieved repository evidence provides specific, concrete
+        support for that pattern.
+        
+        Do not use general software-engineering knowledge as evidence that
+        a pattern exists in this repository.
+
+        When discussing architecture, identify relationships between
+        components only when those relationships are supported by
+        the retrieved code.
+
+        Question / Feature Request:
+        %s
+
+        Context:
+        %s
+        """.formatted(
                 question,
                 context
         );

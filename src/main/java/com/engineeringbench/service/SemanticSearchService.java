@@ -191,4 +191,77 @@ public class SemanticSearchService {
 
         return results;
     }
+
+    public List<SearchResult> searchForAnalysis(
+            String collection,
+            String question,
+            String repository) {
+
+        List<String> analysisQueries = List.of(
+                question,
+                "controllers REST endpoints APIs request handling",
+                "services business logic application flow",
+                "configuration dependencies Spring Boot application setup",
+                "data storage database Qdrant persistence embedding",
+                "ingestion processing files repositories data flow"
+        );
+
+        List<SearchResult> allResults =
+                new ArrayList<>();
+
+        for (String query : analysisQueries) {
+
+            allResults.addAll(
+                    search(
+                            collection,
+                            query,
+                            repository
+                    )
+            );
+        }
+
+        /*
+         * Remove duplicate chunks.
+         *
+         * The same chunk may be returned by
+         * multiple analysis queries.
+         */
+        List<SearchResult> uniqueResults =
+                new ArrayList<>();
+
+        for (SearchResult result : allResults) {
+
+            boolean duplicate =
+                    uniqueResults.stream()
+                            .anyMatch(existing ->
+                                    existing.source()
+                                            .equals(result.source())
+                                            &&
+                                            existing.content()
+                                                    .equals(result.content())
+                            );
+
+            if (!duplicate) {
+                uniqueResults.add(result);
+            }
+        }
+
+        /*
+         * Keep the strongest results.
+         *
+         * Each individual search returns up to 5 results.
+         * Multiple searches can therefore produce a much
+         * larger evidence set.
+         */
+        return uniqueResults.stream()
+                .sorted(
+                        (a, b) ->
+                                Double.compare(
+                                        b.score(),
+                                        a.score()
+                                )
+                )
+                .limit(30)
+                .toList();
+    }
 }

@@ -159,7 +159,7 @@ public class AskController {
             @RequestBody ChatRequest request) {
 
         List<SearchResult> chunks =
-                searchService.search(
+                searchService.searchForAnalysis(
                         collection,
                         request.question(),
                         request.repository());
