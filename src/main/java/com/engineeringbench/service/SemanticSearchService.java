@@ -1,6 +1,7 @@
 package com.engineeringbench.service;
 
 import com.engineeringbench.model.SearchResult;
+import com.engineeringbench.model.AnalysisCategory;
 import com.google.common.util.concurrent.ListenableFuture;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
@@ -197,71 +198,65 @@ public class SemanticSearchService {
             String question,
             String repository) {
 
-        List<String> analysisQueries = List.of(
-                question,
-                "controllers REST endpoints APIs request handling",
-                "services business logic application flow",
-                "configuration dependencies Spring Boot application setup",
-                "data storage database Qdrant persistence embedding",
-                "ingestion processing files repositories data flow"
+        List<AnalysisCategory> categories = List.of(
+                new AnalysisCategory(
+                        "question",
+                        question
+                ),
+                new AnalysisCategory(
+                        "controllers",
+                        question + " controllers REST endpoints APIs request handling"
+                ),
+                new AnalysisCategory(
+                        "services",
+                        question + " services business logic application flow"
+                ),
+                new AnalysisCategory(
+                        "configuration",
+                        question + " configuration dependencies Spring Boot application setup"
+                ),
+                new AnalysisCategory(
+                        "persistence",
+                        question + " data storage database Qdrant persistence embedding"
+                ),
+                new AnalysisCategory(
+                        "ingestion",
+                        question + " ingestion processing files repositories data flow"
+                )
         );
 
-        List<SearchResult> allResults =
+        List<SearchResult> results =
                 new ArrayList<>();
 
-        for (String query : analysisQueries) {
+        int resultsPerCategory = 5;
 
-            allResults.addAll(
+        for (AnalysisCategory category : categories) {
+
+            List<SearchResult> categoryResults =
                     search(
                             collection,
-                            query,
+                            category.query(),
                             repository
-                    )
-            );
+                    );
+
+            List<SearchResult> uniqueCategoryResults =
+                    categoryResults.stream()
+                            .filter(result ->
+                                    results.stream()
+                                            .noneMatch(existing ->
+                                                    existing.source()
+                                                            .equals(result.source())
+                                                            &&
+                                                            existing.content()
+                                                                    .equals(result.content())
+                                            )
+                            )
+                            .limit(resultsPerCategory)
+                            .toList();
+
+            results.addAll(uniqueCategoryResults);
         }
 
-        /*
-         * Remove duplicate chunks.
-         *
-         * The same chunk may be returned by
-         * multiple analysis queries.
-         */
-        List<SearchResult> uniqueResults =
-                new ArrayList<>();
-
-        for (SearchResult result : allResults) {
-
-            boolean duplicate =
-                    uniqueResults.stream()
-                            .anyMatch(existing ->
-                                    existing.source()
-                                            .equals(result.source())
-                                            &&
-                                            existing.content()
-                                                    .equals(result.content())
-                            );
-
-            if (!duplicate) {
-                uniqueResults.add(result);
-            }
-        }
-
-        /*
-         * Keep the strongest results.
-         *
-         * Each individual search returns up to 5 results.
-         * Multiple searches can therefore produce a much
-         * larger evidence set.
-         */
-        return uniqueResults.stream()
-                .sorted(
-                        (a, b) ->
-                                Double.compare(
-                                        b.score(),
-                                        a.score()
-                                )
-                )
-                .limit(30)
-                .toList();
+        return results;
     }
 }
