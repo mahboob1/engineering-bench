@@ -4,5 +4,6 @@ public record SearchResult(
         String content,
         String source,
         String repository,
-        double score
+        double score,
+        String category
 ) {}

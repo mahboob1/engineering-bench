@@ -185,7 +185,8 @@ public class SemanticSearchService {
                             content,
                             source,
                             repositoryName,
-                            point.getScore()
+                            point.getScore(),
+                            null
                     )
             );
         }
@@ -239,8 +240,21 @@ public class SemanticSearchService {
                             repository
                     );
 
-            List<SearchResult> uniqueCategoryResults =
+            List<SearchResult> categorizedResults =
                     categoryResults.stream()
+                            .map(result ->
+                                    new SearchResult(
+                                            result.content(),
+                                            result.source(),
+                                            result.repository(),
+                                            result.score(),
+                                            category.name()
+                                    )
+                            )
+                            .toList();
+
+            List<SearchResult> uniqueCategoryResults =
+                    categorizedResults.stream()
                             .filter(result ->
                                     results.stream()
                                             .noneMatch(existing ->
@@ -255,6 +269,12 @@ public class SemanticSearchService {
                             .toList();
 
             results.addAll(uniqueCategoryResults);
+            System.out.println(
+                    category.name()
+                            + " -> "
+                            + uniqueCategoryResults.size()
+                            + " unique chunks"
+            );
         }
 
         return results;
