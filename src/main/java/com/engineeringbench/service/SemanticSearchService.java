@@ -106,7 +106,7 @@ public class SemanticSearchService {
         SearchPoints.Builder builder = SearchPoints.newBuilder()
                                 .setCollectionName(collection)
                                 .addAllVector(vector)
-                                .setLimit(5)
+                                .setLimit(10)
                                 .setWithPayload(
                                         Points.WithPayloadSelector.newBuilder()
                                                 .setEnable(true)
@@ -202,34 +202,45 @@ public class SemanticSearchService {
         List<AnalysisCategory> categories = List.of(
                 new AnalysisCategory(
                         "question",
-                        question
+                        question,
+                        5
                 ),
                 new AnalysisCategory(
                         "controllers",
-                        question + " controllers REST endpoints APIs request handling"
+                        question + " controllers REST endpoints APIs request handling",
+                        4
                 ),
                 new AnalysisCategory(
                         "services",
-                        question + " services business logic application flow"
+                        question + " services business logic application flow",
+                        4
                 ),
                 new AnalysisCategory(
                         "configuration",
-                        question + " configuration dependencies Spring Boot application setup"
+                        question + " configuration dependencies Spring Boot application setup",
+                        4
                 ),
                 new AnalysisCategory(
                         "persistence",
-                        question + " data storage database Qdrant persistence embedding"
+                        question + " data storage database Qdrant persistence embedding",
+                        4
                 ),
                 new AnalysisCategory(
                         "ingestion",
-                        question + " ingestion processing files repositories data flow"
+                        question + " ingestion processing files repositories data flow",
+                        3
+                ),
+                new AnalysisCategory(
+                        "relationships",
+                        question
+                                + " calls invokes uses injects autowired "
+                                + "constructor dependency method service controller repository",
+                        6
                 )
         );
 
         List<SearchResult> results =
                 new ArrayList<>();
-
-        int resultsPerCategory = 5;
 
         for (AnalysisCategory category : categories) {
 
@@ -265,16 +276,24 @@ public class SemanticSearchService {
                                                                     .equals(result.content())
                                             )
                             )
-                            .limit(resultsPerCategory)
+                            .limit(category.maxResults())
                             .toList();
 
             results.addAll(uniqueCategoryResults);
             System.out.println(
-                    category.name()
-                            + " -> "
-                            + uniqueCategoryResults.size()
-                            + " unique chunks"
+                    "\n=== " + category.name() + " ==="
             );
+
+            if (category.name().equals("relationships")) {
+
+                uniqueCategoryResults.forEach(result ->
+                        System.out.println(
+                                "\nSource: " + result.source()
+                                        + " | Score: " + result.score()
+                                        + "\nContent:\n" + result.content()
+                        )
+                );
+            }
         }
 
         return results;

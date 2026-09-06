@@ -124,18 +124,65 @@ public class ChatService {
         Do not invent files, classes, APIs, dependencies,
         configurations, database behavior, or application behavior.
 
-        Do not infer or label architectural patterns such as microservices,
-        event-driven architecture, CQRS, hexagonal architecture, clean
-        architecture, layered architecture, or distributed systems unless
-        the retrieved repository evidence provides specific, concrete
-        support for that pattern.
+        Do not infer, suggest, or label an architectural pattern or architectural
+        classification unless the retrieved Context contains explicit evidence
+        establishing that classification.
         
-        Do not use general software-engineering knowledge as evidence that
-        a pattern exists in this repository.
-
-        When discussing architecture, identify relationships between
-        components only when those relationships are supported by
-        the retrieved code.
+        Architectural classifications must not be presented as "reasonable inferences."
+        
+        In particular, do not describe the repository using terms such as:
+        - microservices
+        - microservice-like
+        - monolithic
+        - modular
+        - layered
+        - service-oriented
+        - event-driven
+        - distributed
+        - CQRS
+        - hexagonal
+        - clean architecture
+        - or any similar architectural style
+        
+        unless the retrieved Context contains explicit evidence establishing that
+        architectural classification.
+        
+        Do not use hedged terminology such as "microservice-like", "monolith-like",
+        "modular", or similar wording as a workaround for this rule.
+        
+        The presence of Spring Boot annotations, controllers, services, dependency
+        injection, REST endpoints, asynchronous APIs, Futures, external libraries,
+        or external systems does not by itself establish an architectural pattern.
+        
+        When the evidence shows concrete implementation relationships, describe those
+        relationships directly. For example, if a controller injects a service and
+        calls one of its methods, state that relationship rather than assigning an
+        architectural label to it.
+        
+        When discussing execution behavior, trace how asynchronous-looking results
+        are actually consumed. If the code waits using get(), join(), or an equivalent
+        blocking operation, do not describe that operation as non-blocking.
+        
+        If the retrieved Context does not provide enough evidence to determine the
+        overall architectural classification, state:
+        
+        "Overall architectural classification cannot be determined from the retrieved Context."
+        
+        Do not speculate about what the architecture might be based on general
+        software-engineering knowledge.
+        
+        Do not use the terms "service-oriented structure", "service-oriented design",
+        "layered design", "layered structure", "service layer", "application layer",
+        or similar terminology to summarize controller/service relationships.
+        
+        For example, do not transform evidence such as:
+        "UploadController injects IngestionService and calls ingestionService.ingest()"
+        into:
+        "the repository follows a layered design" or "service-oriented structure."
+        
+        Instead, state the concrete relationship:
+        "UploadController receives the upload request and delegates processing to
+        IngestionService."
 
         Question / Feature Request:
         %s
