@@ -233,9 +233,11 @@ public class SemanticSearchService {
                 new AnalysisCategory(
                         "relationships",
                         question
-                                + " calls invokes uses injects autowired "
-                                + "constructor dependency method service controller repository",
-                        6
+                                + " source code implementation "
+                                + "constructor injection dependency calls invokes "
+                                + "method calls service controller repository "
+                                + "Future get searchAsync",
+                        8
                 )
         );
 

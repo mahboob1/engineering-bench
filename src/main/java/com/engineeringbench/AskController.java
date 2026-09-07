@@ -167,8 +167,10 @@ public class AskController {
         String context =
                 chunks.stream()
                         .map(c ->
-                                "Repository: " + c.repository()
+                                        "Analysis Category: " + c.category()
+                                        + "\nRepository: " + c.repository()
                                         + "\nSource: " + c.source()
+                                        + "\nRetrieval Score: " + c.score()
                                         + "\n" + c.content())
                         .collect(Collectors.joining("\n\n"));
 

@@ -159,9 +159,28 @@ public class ChatService {
         calls one of its methods, state that relationship rather than assigning an
         architectural label to it.
         
+        Do not convert component roles or dependency relationships into architectural
+        classifications. A controller calling a service is evidence of a method-call
+        relationship, not evidence of a layered, service-oriented, modular, or other
+        architectural structure. A class storing data is evidence of a storage
+        responsibility, not evidence of a persistence layer. An external client call
+        is evidence of an integration, not evidence of distributed architecture.
+        
         When discussing execution behavior, trace how asynchronous-looking results
-        are actually consumed. If the code waits using get(), join(), or an equivalent
-        blocking operation, do not describe that operation as non-blocking.
+        are actually consumed.
+
+        Do not treat the name of an API such as searchAsync() as evidence that the
+        application performs asynchronous or non-blocking processing.
+
+        Determine the execution model from the retrieved code. If an asynchronous-looking
+        API returns a Future or similar result and the code subsequently calls get(),
+        join(), or another blocking operation, describe the observed behavior as
+        waiting for the result rather than asynchronous or non-blocking processing.
+
+        When both an asynchronous-looking API invocation and a subsequent blocking
+        operation are present, describe the concrete execution sequence shown by the
+        code. The blocking operation takes precedence over the API name when
+        characterizing the observed execution behavior.
         
         If the retrieved Context does not provide enough evidence to determine the
         overall architectural classification, state:

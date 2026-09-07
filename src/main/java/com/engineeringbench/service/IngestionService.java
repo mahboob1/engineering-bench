@@ -117,7 +117,7 @@ public class IngestionService {
                 chunker.chunk(
                         text,
                         800,
-                        100);
+                        300);
 
         QdrantEmbeddingStore embeddingStore =
                 QdrantEmbeddingStore.builder()
