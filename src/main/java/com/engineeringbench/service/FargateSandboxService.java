@@ -1,0 +1,113 @@
+package com.engineeringbench.service;
+
+import com.engineeringbench.model.SandboxResult;
+import org.springframework.stereotype.Service;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.*;
+
+import java.util.List;
+
+@Service("fargateSandboxService")
+public class FargateSandboxService implements SandboxService {
+
+    private final EcsClient ecsClient;
+
+    public FargateSandboxService() {
+        this.ecsClient = EcsClient.builder()
+                .region(Region.US_EAST_2)
+                .build();
+    }
+
+    @Override
+    public SandboxResult execute(
+            String repository,
+            List<String> commands) {
+
+        String command = """
+                            set -e
+                            echo "Cloning repository..."
+                            git clone %s /workspace/repository
+
+                            echo "Repository cloned successfully"
+                            cd /workspace/repository
+
+                            echo "Running tests..."
+                            ./gradlew test
+
+                            echo "Tests completed successfully"
+                        """.formatted(repository);
+
+        RunTaskRequest request = RunTaskRequest.builder()
+                .cluster("engineering-bench")
+                .taskDefinition("engineering-bench-sandbox:1")
+                .launchType(LaunchType.FARGATE)
+                .networkConfiguration(
+                        NetworkConfiguration.builder()
+                                .awsvpcConfiguration(
+                                        AwsVpcConfiguration.builder()
+                                                .subnets("subnet-0f2014463b95a7c00")
+                                                .securityGroups("sg-05db641b523a00737")
+                                                .assignPublicIp(AssignPublicIp.ENABLED)
+                                                .build())
+                                .build())
+                .overrides(
+                        TaskOverride.builder()
+                                .containerOverrides(
+                                        ContainerOverride.builder()
+                                                .name("engineering-bench-sandbox")
+                                                .command("bash", "-c", command)
+                                                .build())
+                                .build())
+                .build();
+
+        RunTaskResponse response = ecsClient.runTask(request);
+
+        if (response.failures() != null && !response.failures().isEmpty()) {
+            throw new IllegalStateException(
+                    "Failed to start Fargate task: " + response.failures());
+        }
+
+        String taskArn = response.tasks().get(0).taskArn();
+
+        DescribeTasksResponse taskResponse = waitForTask(taskArn);
+
+        Task task = taskResponse.tasks().get(0);
+
+        Container container = task.containers().get(0);
+
+        Integer exitCode = container.exitCode();
+
+        return new SandboxResult(
+                exitCode != null ? exitCode : -1,
+                "Fargate task completed: " + taskArn,
+                container.reason() != null ? container.reason() : ""
+        );
+    }
+
+    private DescribeTasksResponse waitForTask(String taskArn) {
+
+        while (true) {
+
+            DescribeTasksResponse response = ecsClient.describeTasks(
+                    DescribeTasksRequest.builder()
+                            .cluster("engineering-bench")
+                            .tasks(taskArn)
+                            .build());
+
+            Task task = response.tasks().get(0);
+
+            if ("STOPPED".equals(task.lastStatus())) {
+                return response;
+            }
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(
+                        "Interrupted while waiting for Fargate task", e);
+            }
+        }
+    }
+}

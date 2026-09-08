@@ -39,4 +39,14 @@ dependencies {
     implementation 'org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r'
     implementation 'org.apache.poi:poi-ooxml:5.4.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+//    implementation 'software.amazon.awssdk:ecs:2.36.3'
+//    implementation 'software.amazon.awssdk:cloudwatchlogs:2.36.3'
+//    implementation "software.amazon.awssdk:signin:2.36.3"
+
+    implementation platform('software.amazon.awssdk:bom:2.39.1')
+
+    implementation 'software.amazon.awssdk:ecs'
+    implementation 'software.amazon.awssdk:cloudwatchlogs'
+    implementation 'software.amazon.awssdk:signin'
 }

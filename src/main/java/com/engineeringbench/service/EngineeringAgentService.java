@@ -2,6 +2,7 @@ package com.engineeringbench.service;
 
 import com.engineeringbench.model.EngineeringTask;
 import com.engineeringbench.model.SandboxResult;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public class EngineeringAgentService {
     private final SandboxService sandboxService;
 
     public EngineeringAgentService(
-            SandboxService sandboxService) {
+            @Qualifier("fargateSandboxService") SandboxService sandboxService) {
 
         this.sandboxService = sandboxService;
     }
