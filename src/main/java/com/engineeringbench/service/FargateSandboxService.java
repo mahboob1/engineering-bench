@@ -34,15 +34,35 @@ public class FargateSandboxService implements SandboxService {
         StringBuilder script = new StringBuilder();
 
         script.append("""
-                set -e
+        set -e
 
-                echo "Cloning repository..."
-                git clone %s /workspace/repository
+        echo "Cloning repository..."
+        git clone %s /workspace/repository
 
-                echo "Repository cloned successfully"
-                cd /workspace/repository
+        echo "Repository cloned successfully"
+        cd /workspace/repository
 
-                """.formatted(repository));
+        echo "Inspecting repository..."
+        echo "Repository files:"
+        find . -maxdepth 2 -type f | sort
+
+        echo "Build configuration files:"
+        for file in \\
+            gradlew \\
+            build.gradle \\
+            build.gradle.kts \\
+            pom.xml \\
+            mvnw \\
+            package.json \\
+            pyproject.toml \\
+            requirements.txt
+        do
+            if [ -f "$file" ]; then
+                echo "FOUND: $file"
+            fi
+        done
+
+        """.formatted(repository));
 
         script.append("echo \"Executing commands...\"\n");
 
