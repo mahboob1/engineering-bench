@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.*;
+import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
+import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 
 import java.util.List;
 
@@ -12,9 +14,14 @@ import java.util.List;
 public class FargateSandboxService implements SandboxService {
 
     private final EcsClient ecsClient;
+    private final CloudWatchLogsClient logsClient;
 
     public FargateSandboxService() {
         this.ecsClient = EcsClient.builder()
+                .region(Region.US_EAST_2)
+                .build();
+
+        this.logsClient = CloudWatchLogsClient.builder()
                 .region(Region.US_EAST_2)
                 .build();
     }
@@ -78,9 +85,19 @@ public class FargateSandboxService implements SandboxService {
 
         Integer exitCode = container.exitCode();
 
+        String stdout;
+
+        try {
+            stdout = getCloudWatchLogs(taskArn);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(
+                    "Interrupted while retrieving Fargate logs", e);
+        }
+
         return new SandboxResult(
                 exitCode != null ? exitCode : -1,
-                "Fargate task completed: " + taskArn,
+                stdout,
                 container.reason() != null ? container.reason() : ""
         );
     }
@@ -109,5 +126,28 @@ public class FargateSandboxService implements SandboxService {
                         "Interrupted while waiting for Fargate task", e);
             }
         }
+    }
+
+    private String getCloudWatchLogs(String taskArn) throws InterruptedException {
+
+        String taskId = taskArn.substring(taskArn.lastIndexOf("/") + 1);
+
+        String logStreamName =
+                "sandbox/engineering-bench-sandbox/" + taskId;
+
+        // Give CloudWatch a moment to receive the final log events.
+        Thread.sleep(3000);
+
+        GetLogEventsResponse response = logsClient.getLogEvents(
+                GetLogEventsRequest.builder()
+                        .logGroupName("/ecs/engineering-bench-sandbox")
+                        .logStreamName(logStreamName)
+                        .startFromHead(true)
+                        .build()
+        );
+
+        return response.events().stream()
+                .map(OutputLogEvent::message)
+                .reduce("", (a, b) -> a + b + "\n");
     }
 }
