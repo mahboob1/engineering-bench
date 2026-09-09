@@ -29,8 +29,6 @@ public class EngineeringAgentService {
          * will be added in the next phase.
          */
 
-        String plan = createPlan(task);
-
         List<String> commands = List.of(
         );
 
@@ -40,32 +38,41 @@ public class EngineeringAgentService {
                         commands
                 );
 
+        String plan = createPlan(task, result);
+
         return """
-                Engineering Task
-                -----------------
-                Repository: %s
-                Task: %s
+        Engineering Task
+        -----------------
+        Repository: %s
+        Task: %s
 
-                Plan
-                ----
-                %s
+        Plan
+        ----
+        %s
 
-                Sandbox Result
-                --------------
-                Exit Code: %d
-                Successful: %s
+        Repository Detection
+        ---------------------
+        Build System: %s
+        Test Command: %s
 
-                STDOUT
-                ------
-                %s
+        Sandbox Result
+        --------------
+        Exit Code: %d
+        Successful: %s
 
-                STDERR
-                ------
-                %s
-                """.formatted(
+        STDOUT
+        ------
+        %s
+
+        STDERR
+        ------
+        %s
+        """.formatted(
                 task.repository(),
                 task.task(),
                 plan,
+                result.buildSystem(),
+                result.testCommand(),
                 result.exitCode(),
                 result.successful(),
                 result.stdout(),
@@ -74,14 +81,29 @@ public class EngineeringAgentService {
     }
 
     private String createPlan(
-            EngineeringTask task) {
+            EngineeringTask task,
+            SandboxResult result) {
+
+        if (result.buildSystem().isBlank()) {
+            return """
+                1. Inspect the repository.
+                2. Determine the repository build system.
+                3. No supported build system was detected.
+                """;
+        }
 
         return """
-                1. Understand the requested change.
-                2. Locate the relevant source files.
-                3. Modify the repository.
-                4. Run the build and tests.
-                5. Verify the resulting change.
-                """;
+            1. Inspect the repository.
+            2. Detect the repository build system.
+            3. Execute the detected test command.
+            4. Observe the execution result.
+            5. Verify the command completed successfully.
+
+            Detected Build System: %s
+            Detected Test Command: %s
+            """.formatted(
+                result.buildSystem(),
+                result.testCommand()
+        );
     }
 }

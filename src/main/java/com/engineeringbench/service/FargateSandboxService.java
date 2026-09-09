@@ -164,10 +164,18 @@ public class FargateSandboxService implements SandboxService {
                     "Interrupted while retrieving Fargate logs", e);
         }
 
+        String buildSystem =
+                extractValue(stdout, "Build System:");
+
+        String testCommand =
+                extractValue(stdout, "Test Command:");
+
         return new SandboxResult(
                 exitCode != null ? exitCode : -1,
                 stdout,
-                container.reason() != null ? container.reason() : ""
+                container.reason() != null ? container.reason() : "",
+                buildSystem,
+                testCommand
         );
     }
 
@@ -219,5 +227,14 @@ public class FargateSandboxService implements SandboxService {
         return response.events().stream()
                 .map(OutputLogEvent::message)
                 .reduce("", (a, b) -> a + b + "\n");
+    }
+
+    private String extractValue(String output, String prefix) {
+
+        return output.lines()
+                .filter(line -> line.startsWith(prefix))
+                .map(line -> line.substring(prefix.length()).trim())
+                .findFirst()
+                .orElse("");
     }
 }

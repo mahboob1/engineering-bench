@@ -18,7 +18,9 @@ public class LocalSandboxService implements SandboxService {
                 "Sandbox execution placeholder\n"
                         + "Repository: " + repository
                         + "\nCommands: " + commands,
-                ""
+                "",
+                "Build System",
+                "Test Command"
         );
     }
 }
