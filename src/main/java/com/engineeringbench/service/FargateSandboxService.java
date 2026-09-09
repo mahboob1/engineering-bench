@@ -62,6 +62,34 @@ public class FargateSandboxService implements SandboxService {
             fi
         done
 
+        echo "Detecting build system..."
+
+        if [ -f "gradlew" ]; then
+            BUILD_SYSTEM="Gradle"
+            TEST_COMMAND="./gradlew test"
+        elif [ -f "mvnw" ]; then
+            BUILD_SYSTEM="Maven"
+            TEST_COMMAND="./mvnw test"
+        elif [ -f "pom.xml" ]; then
+            BUILD_SYSTEM="Maven"
+            TEST_COMMAND="mvn test"
+        elif [ -f "package.json" ]; then
+            BUILD_SYSTEM="Node.js"
+            TEST_COMMAND="npm test"
+        elif [ -f "pyproject.toml" ]; then
+            BUILD_SYSTEM="Python"
+            TEST_COMMAND="pytest"
+        elif [ -f "requirements.txt" ]; then
+            BUILD_SYSTEM="Python"
+            TEST_COMMAND="pytest"
+        else
+            BUILD_SYSTEM="Unknown"
+            TEST_COMMAND=""
+        fi
+
+        echo "Build System: $BUILD_SYSTEM"
+        echo "Test Command: $TEST_COMMAND"
+
         """.formatted(repository));
 
         script.append("echo \"Executing commands...\"\n");
