@@ -32,7 +32,6 @@ public class EngineeringAgentService {
         String plan = createPlan(task);
 
         List<String> commands = List.of(
-                "echo 'Repository inspection completed'"
         );
 
         SandboxResult result =

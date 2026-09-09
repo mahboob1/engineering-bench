@@ -89,6 +89,16 @@ public class FargateSandboxService implements SandboxService {
 
         echo "Build System: $BUILD_SYSTEM"
         echo "Test Command: $TEST_COMMAND"
+        
+        if [ -n "$TEST_COMMAND" ]; then
+            echo "Executing detected test command..."
+            echo ">>> $TEST_COMMAND"
+            eval "$TEST_COMMAND"
+            echo "Detected test command completed successfully"
+        else
+            echo "No supported test command detected"
+            exit 1
+        fi
 
         """.formatted(repository));
 
