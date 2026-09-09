@@ -31,10 +31,16 @@ public class EngineeringAgentService {
 
         String plan = createPlan(task);
 
+        List<String> commands = List.of(
+                "echo 'Hello from dynamic command execution'",
+                "java -version",
+                "./gradlew test"
+        );
+
         SandboxResult result =
                 sandboxService.execute(
                         task.repository(),
-                        List.of("build/test")
+                        commands
                 );
 
         return """

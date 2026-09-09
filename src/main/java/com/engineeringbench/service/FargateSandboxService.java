@@ -31,19 +31,30 @@ public class FargateSandboxService implements SandboxService {
             String repository,
             List<String> commands) {
 
-        String command = """
-                            set -e
-                            echo "Cloning repository..."
-                            git clone %s /workspace/repository
+        StringBuilder script = new StringBuilder();
 
-                            echo "Repository cloned successfully"
-                            cd /workspace/repository
+        script.append("""
+                set -e
 
-                            echo "Running tests..."
-                            ./gradlew test
+                echo "Cloning repository..."
+                git clone %s /workspace/repository
 
-                            echo "Tests completed successfully"
-                        """.formatted(repository);
+                echo "Repository cloned successfully"
+                cd /workspace/repository
+
+                """.formatted(repository));
+
+        script.append("echo \"Executing commands...\"\n");
+
+        for (String command : commands) {
+            script.append("echo \">>> ").append(command).append("\"\n");
+            script.append(command).append("\n");
+        }
+
+        script.append("""
+                
+                echo "All commands completed successfully"
+                """);
 
         RunTaskRequest request = RunTaskRequest.builder()
                 .cluster("engineering-bench")
@@ -63,7 +74,7 @@ public class FargateSandboxService implements SandboxService {
                                 .containerOverrides(
                                         ContainerOverride.builder()
                                                 .name("engineering-bench-sandbox")
-                                                .command("bash", "-c", command)
+                                                .command("bash", "-c", script.toString())
                                                 .build())
                                 .build())
                 .build();
@@ -128,14 +139,15 @@ public class FargateSandboxService implements SandboxService {
         }
     }
 
-    private String getCloudWatchLogs(String taskArn) throws InterruptedException {
+    private String getCloudWatchLogs(String taskArn)
+            throws InterruptedException {
 
-        String taskId = taskArn.substring(taskArn.lastIndexOf("/") + 1);
+        String taskId =
+                taskArn.substring(taskArn.lastIndexOf("/") + 1);
 
         String logStreamName =
                 "sandbox/engineering-bench-sandbox/" + taskId;
 
-        // Give CloudWatch a moment to receive the final log events.
         Thread.sleep(3000);
 
         GetLogEventsResponse response = logsClient.getLogEvents(
