@@ -29,8 +29,7 @@ public class EngineeringAgentService {
          * will be added in the next phase.
          */
 
-        List<String> commands = List.of(
-        );
+        List<String> commands = List.of("./gradlew test");
 
         SandboxResult result =
                 sandboxService.execute(
