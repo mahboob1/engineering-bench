@@ -32,31 +32,13 @@ public class EngineeringAgentService {
                         task.task()
                 );
 
-        String agentInput = """
-                Engineering Task:
-                %s
+        StringBuilder executionHistory =
+                new StringBuilder();
 
-                Retrieved Repository Evidence:
-                %s
-                """.formatted(
-                task.task(),
-                context
-        );
+        StringBuilder response =
+                new StringBuilder();
 
-        AgentDecision decision =
-                engineeringAgent.decide(agentInput);
-
-        SandboxResult result =
-                toolExecutor.execute(
-                        decision.toolName(),
-                        task.repository(),
-                        decision.command()
-                );
-
-        String observation =
-                observe(result);
-
-        return """
+        response.append("""
                 Engineering Task
                 -----------------
                 Repository: %s
@@ -66,41 +48,180 @@ public class EngineeringAgentService {
                 -----------------------------
                 %s
 
-                Agent Decision
-                --------------
-                Tool: %s
-                Command: %s
-                Reasoning: %s
-
-                Tool Execution
-                --------------
-                Exit Code: %d
-                Successful: %s
-
-                Agent Observation
-                -----------------
-                %s
-
-                STDOUT
-                ------
-                %s
-
-                STDERR
-                ------
-                %s
                 """.formatted(
                 task.repository(),
                 task.task(),
-                context,
-                decision.toolName(),
-                decision.command(),
-                decision.reasoning(),
-                result.exitCode(),
-                result.successful(),
-                observation,
-                result.stdout(),
-                result.stderr()
-        );
+                context
+        ));
+
+        /*
+         * Stage 13:
+         *
+         * The agent may decide to CONTINUE or STOP.
+         *
+         * CONTINUE:
+         *     execute the selected tool
+         *     observe the result
+         *     ask the agent what to do next
+         *
+         * STOP:
+         *     finish execution
+         */
+
+        int maxIterations = 5;
+
+        for (int iteration = 1;
+             iteration <= maxIterations;
+             iteration++) {
+
+            String agentInput = """
+                    Engineering Task:
+                    %s
+
+                    Retrieved Repository Evidence:
+                    %s
+
+                    Previous Execution History:
+                    %s
+
+                    Decide the next action.
+                    """.formatted(
+                    task.task(),
+                    context,
+                    executionHistory
+            );
+
+            AgentDecision decision =
+                    engineeringAgent.decide(agentInput);
+
+            response.append("""
+                    
+                    Agent Decision #%d
+                    -----------------
+                    Action: %s
+                    Tool: %s
+                    Command: %s
+                    Reasoning: %s
+
+                    """.formatted(
+                    iteration,
+                    decision.action(),
+                    decision.toolName(),
+                    decision.command(),
+                    decision.reasoning()
+            ));
+
+            /*
+             * Agent decided that the task is complete.
+             */
+            if ("STOP".equalsIgnoreCase(
+                    decision.action())) {
+
+                response.append("""
+                        Agent Result
+                        ------------
+                        Agent decided that no further action is required.
+                        """);
+
+                break;
+            }
+
+            /*
+             * Agent decided that another command should be executed.
+             */
+            if (!"CONTINUE".equalsIgnoreCase(
+                    decision.action())) {
+
+                response.append("""
+                        Agent Result
+                        ------------
+                        Invalid agent action. Execution stopped for safety.
+                        """);
+
+                break;
+            }
+
+            /*
+             * Execute the command through the Tool Executor.
+             */
+            SandboxResult result =
+                    toolExecutor.execute(
+                            decision.toolName(),
+                            task.repository(),
+                            decision.command()
+                    );
+
+            String observation =
+                    observe(result);
+
+            response.append("""
+                    Tool Execution #%d
+                    -----------------
+                    Exit Code: %d
+                    Successful: %s
+
+                    Agent Observation
+                    -----------------
+                    %s
+
+                    STDOUT
+                    ------
+                    %s
+
+                    STDERR
+                    ------
+                    %s
+
+                    """.formatted(
+                    iteration,
+                    result.exitCode(),
+                    result.successful(),
+                    observation,
+                    result.stdout(),
+                    result.stderr()
+            ));
+
+            /*
+             * Give the execution result back to the agent
+             * on the next iteration.
+             */
+            executionHistory.append("""
+                    Execution #%d
+
+                    Tool:
+                    %s
+
+                    Command:
+                    %s
+
+                    Exit Code:
+                    %d
+
+                    Successful:
+                    %s
+
+                    Observation:
+                    %s
+
+                    STDOUT:
+                    %s
+
+                    STDERR:
+                    %s
+
+                    """.formatted(
+                    iteration,
+                    decision.toolName(),
+                    decision.command(),
+                    result.exitCode(),
+                    result.successful(),
+                    observation,
+                    result.stdout(),
+                    result.stderr()
+            ));
+        }
+
+        return response.toString();
     }
 
     private String observe(
