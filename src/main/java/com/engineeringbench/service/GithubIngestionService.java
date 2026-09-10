@@ -36,14 +36,16 @@ public class GithubIngestionService {
                 .call();
 
         ingestRepository(
-                collection, tempDir.toString());
+                collection,
+                tempDir.toString(),
+                repoNameFromUrl(repoUrl));
     }
 
     // For local repositories
     public void ingestRepository(
             String collection,
-            String repoPath)
-            throws Exception {
+            String repoPath,
+            String repository) throws Exception {
 
         Path repoRoot =
                 Path.of(repoPath);
@@ -57,9 +59,6 @@ public class GithubIngestionService {
                     .forEach(file -> {
 
                         try {
-                            String repository =
-                                    repoNameFromUrl(repoPath);
-
                             String content =
                                     Files.readString(file);
 

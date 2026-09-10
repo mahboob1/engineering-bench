@@ -111,7 +111,7 @@ public class SemanticSearchService {
                                         Points.WithPayloadSelector.newBuilder()
                                                 .setEnable(true)
                                                 .build()
-                                );;
+                                );
 
         if (repository != null &&
                 !repository.isBlank()) {
@@ -129,7 +129,7 @@ public class SemanticSearchService {
                                                                     Points.Match
                                                                             .newBuilder()
                                                                             .setKeyword(
-                                                                                    repository)
+                                                                                    repoNameFromUrl(repository))
                                                                             .build()
                                                             )
                                                             .build()
@@ -299,5 +299,21 @@ public class SemanticSearchService {
         }
 
         return results;
+    }
+
+    private String repoNameFromUrl(String repoUrl) {
+
+        String repoName =
+                repoUrl.substring(
+                        repoUrl.lastIndexOf('/') + 1);
+
+        if (repoName.endsWith(".git")) {
+            repoName =
+                    repoName.substring(
+                            0,
+                            repoName.length() - 4);
+        }
+
+        return repoName;
     }
 }

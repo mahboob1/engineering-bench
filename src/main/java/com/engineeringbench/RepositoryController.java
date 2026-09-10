@@ -21,12 +21,14 @@ public class RepositoryController {
     @PostMapping("/repo")
     public String ingestRepo(
             @RequestParam String collection,
-            @RequestParam String path)
+            @RequestParam String path,
+            @RequestParam String repository)
             throws Exception {
 
         service.ingestRepository(
                 collection,
-                path);
+                path,
+                repository);
 
         return "repository indexed";
     }

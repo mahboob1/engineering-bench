@@ -11,19 +11,40 @@ public class EngineeringAgentService {
 
     private final ToolExecutor toolExecutor;
     private final EngineeringAgent engineeringAgent;
+    private final RepositoryContextService repositoryContextService;
 
     public EngineeringAgentService(
             ToolExecutor toolExecutor,
-            EngineeringAgent engineeringAgent) {
+            EngineeringAgent engineeringAgent,
+            RepositoryContextService repositoryContextService) {
 
         this.toolExecutor = toolExecutor;
         this.engineeringAgent = engineeringAgent;
+        this.repositoryContextService =
+                repositoryContextService;
     }
 
     public String execute(EngineeringTask task) {
 
+        String context =
+                repositoryContextService.retrieve(
+                        task.repository(),
+                        task.task()
+                );
+
+        String agentInput = """
+                Engineering Task:
+                %s
+
+                Retrieved Repository Evidence:
+                %s
+                """.formatted(
+                task.task(),
+                context
+        );
+
         AgentDecision decision =
-                engineeringAgent.decide(task.task());
+                engineeringAgent.decide(agentInput);
 
         SandboxResult result =
                 toolExecutor.execute(
@@ -40,6 +61,10 @@ public class EngineeringAgentService {
                 -----------------
                 Repository: %s
                 Task: %s
+
+                Retrieved Repository Context
+                -----------------------------
+                %s
 
                 Agent Decision
                 --------------
@@ -66,6 +91,7 @@ public class EngineeringAgentService {
                 """.formatted(
                 task.repository(),
                 task.task(),
+                context,
                 decision.toolName(),
                 decision.command(),
                 decision.reasoning(),
