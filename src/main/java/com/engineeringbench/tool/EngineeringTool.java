@@ -1,10 +1,12 @@
 package com.engineeringbench.tool;
 
+import com.engineeringbench.model.SandboxResult;
+
 public interface EngineeringTool {
 
     String name();
 
-    String execute(
+    SandboxResult execute(
             String repository,
             String command
     );

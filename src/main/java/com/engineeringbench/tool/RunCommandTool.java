@@ -25,36 +25,13 @@ public class RunCommandTool implements EngineeringTool {
     }
 
     @Override
-    public String execute(
+    public SandboxResult execute(
             String repository,
             String command) {
 
-        SandboxResult result =
-                sandboxService.execute(
-                        repository,
-                        List.of(command)
-                );
-
-        return """
-                Tool: %s
-
-                Command: %s
-
-                Exit Code: %d
-                Successful: %s
-
-                STDOUT:
-                %s
-
-                STDERR:
-                %s
-                """.formatted(
-                name(),
-                command,
-                result.exitCode(),
-                result.successful(),
-                result.stdout(),
-                result.stderr()
+        return sandboxService.execute(
+                repository,
+                List.of(command)
         );
     }
 }
