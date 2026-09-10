@@ -1,35 +1,32 @@
 package com.engineeringbench.service;
 
 import com.engineeringbench.model.EngineeringTask;
-import com.engineeringbench.model.SandboxResult;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class EngineeringAgentService {
 
-    private final SandboxService sandboxService;
+    private final ToolExecutor toolExecutor;
 
     public EngineeringAgentService(
-            @Qualifier("fargateSandboxService")
-            SandboxService sandboxService) {
+            ToolExecutor toolExecutor) {
 
-        this.sandboxService = sandboxService;
+        this.toolExecutor = toolExecutor;
     }
 
     public String execute(EngineeringTask task) {
 
-        String command = chooseCommand(task);
+        String command =
+                chooseCommand(task);
 
-        List<String> commands =
-                List.of(command);
+        String toolName =
+                "run_command";
 
-        SandboxResult result =
-                sandboxService.execute(
+        String toolResult =
+                toolExecutor.execute(
+                        toolName,
                         task.repository(),
-                        commands
+                        command
                 );
 
         return """
@@ -40,28 +37,18 @@ public class EngineeringAgentService {
 
                 Agent Decision
                 --------------
+                Selected Tool: %s
                 Selected Command: %s
 
-                Sandbox Result
+                Tool Execution
                 --------------
-                Exit Code: %d
-                Successful: %s
-
-                STDOUT
-                ------
-                %s
-
-                STDERR
-                ------
                 %s
                 """.formatted(
                 task.repository(),
                 task.task(),
+                toolName,
                 command,
-                result.exitCode(),
-                result.successful(),
-                result.stdout(),
-                result.stderr()
+                toolResult
         );
     }
 
