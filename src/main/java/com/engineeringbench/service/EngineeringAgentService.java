@@ -1,8 +1,8 @@
 package com.engineeringbench.service;
 
+import com.engineeringbench.model.AgentDecision;
 import com.engineeringbench.model.EngineeringTask;
 import com.engineeringbench.model.SandboxResult;
-import com.engineeringbench.tool.EngineeringTool;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,17 +18,14 @@ public class EngineeringAgentService {
 
     public String execute(EngineeringTask task) {
 
-        String command =
-                chooseCommand(task);
-
-        String toolName =
-                "run_command";
+        AgentDecision decision =
+                createDecision(task);
 
         SandboxResult result =
                 toolExecutor.execute(
-                        toolName,
+                        decision.toolName(),
                         task.repository(),
-                        command
+                        decision.command()
                 );
 
         String observation =
@@ -42,8 +39,9 @@ public class EngineeringAgentService {
 
                 Agent Decision
                 --------------
-                Selected Tool: %s
-                Selected Command: %s
+                Tool: %s
+                Command: %s
+                Reasoning: %s
 
                 Tool Execution
                 --------------
@@ -64,8 +62,9 @@ public class EngineeringAgentService {
                 """.formatted(
                 task.repository(),
                 task.task(),
-                toolName,
-                command,
+                decision.toolName(),
+                decision.command(),
+                decision.reasoning(),
                 result.exitCode(),
                 result.successful(),
                 observation,
@@ -74,7 +73,7 @@ public class EngineeringAgentService {
         );
     }
 
-    private String chooseCommand(
+    private AgentDecision createDecision(
             EngineeringTask task) {
 
         String taskText =
@@ -83,21 +82,33 @@ public class EngineeringAgentService {
         if (taskText.contains("test")
                 || taskText.contains("tests")) {
 
-            return "./gradlew test";
+            return new AgentDecision(
+                    "run_command",
+                    "./gradlew test",
+                    "The task requests test execution."
+            );
         }
 
         if (taskText.contains("build")) {
 
-            return "./gradlew build";
+            return new AgentDecision(
+                    "run_command",
+                    "./gradlew build",
+                    "The task requests a repository build."
+            );
         }
 
         if (taskText.contains("compile")) {
 
-            return "./gradlew compileJava";
+            return new AgentDecision(
+                    "run_command",
+                    "./gradlew compileJava",
+                    "The task requests Java compilation."
+            );
         }
 
         throw new IllegalArgumentException(
-                "Agent could not determine an execution command for task: "
+                "Agent could not determine an execution action for task: "
                         + task.task()
         );
     }
