@@ -13,23 +13,18 @@ public class EngineeringAgentService {
     private final SandboxService sandboxService;
 
     public EngineeringAgentService(
-            @Qualifier("fargateSandboxService") SandboxService sandboxService) {
+            @Qualifier("fargateSandboxService")
+            SandboxService sandboxService) {
 
         this.sandboxService = sandboxService;
     }
 
-    public String execute(
-            EngineeringTask task) {
+    public String execute(EngineeringTask task) {
 
-        /*
-         * Phase 1:
-         * Establish the engineering task → sandbox flow.
-         *
-         * The actual LLM planning and code modification
-         * will be added in the next phase.
-         */
+        String command = chooseCommand(task);
 
-        List<String> commands = List.of("./gradlew test");
+        List<String> commands =
+                List.of(command);
 
         SandboxResult result =
                 sandboxService.execute(
@@ -37,41 +32,32 @@ public class EngineeringAgentService {
                         commands
                 );
 
-        String plan = createPlan(task, result);
-
         return """
-        Engineering Task
-        -----------------
-        Repository: %s
-        Task: %s
+                Engineering Task
+                -----------------
+                Repository: %s
+                Task: %s
 
-        Plan
-        ----
-        %s
+                Agent Decision
+                --------------
+                Selected Command: %s
 
-        Repository Detection
-        ---------------------
-        Build System: %s
-        Test Command: %s
+                Sandbox Result
+                --------------
+                Exit Code: %d
+                Successful: %s
 
-        Sandbox Result
-        --------------
-        Exit Code: %d
-        Successful: %s
+                STDOUT
+                ------
+                %s
 
-        STDOUT
-        ------
-        %s
-
-        STDERR
-        ------
-        %s
-        """.formatted(
+                STDERR
+                ------
+                %s
+                """.formatted(
                 task.repository(),
                 task.task(),
-                plan,
-                result.buildSystem(),
-                result.testCommand(),
+                command,
                 result.exitCode(),
                 result.successful(),
                 result.stdout(),
@@ -79,30 +65,31 @@ public class EngineeringAgentService {
         );
     }
 
-    private String createPlan(
-            EngineeringTask task,
-            SandboxResult result) {
+    private String chooseCommand(
+            EngineeringTask task) {
 
-        if (result.buildSystem().isBlank()) {
-            return """
-                1. Inspect the repository.
-                2. Determine the repository build system.
-                3. No supported build system was detected.
-                """;
+        String taskText =
+                task.task().toLowerCase();
+
+        if (taskText.contains("test")
+                || taskText.contains("tests")) {
+
+            return "./gradlew test";
         }
 
-        return """
-            1. Inspect the repository.
-            2. Detect the repository build system.
-            3. Execute the detected test command.
-            4. Observe the execution result.
-            5. Verify the command completed successfully.
+        if (taskText.contains("build")) {
 
-            Detected Build System: %s
-            Detected Test Command: %s
-            """.formatted(
-                result.buildSystem(),
-                result.testCommand()
+            return "./gradlew build";
+        }
+
+        if (taskText.contains("compile")) {
+
+            return "./gradlew compileJava";
+        }
+
+        throw new IllegalArgumentException(
+                "Agent could not determine an execution command for task: "
+                        + task.task()
         );
     }
 }
