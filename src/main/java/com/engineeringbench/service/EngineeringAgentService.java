@@ -1,9 +1,7 @@
 package com.engineeringbench.service;
 
 import com.engineeringbench.agent.EngineeringAgent;
-import com.engineeringbench.model.AgentDecision;
-import com.engineeringbench.model.EngineeringTask;
-import com.engineeringbench.model.SandboxResult;
+import com.engineeringbench.model.*;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,16 +10,23 @@ public class EngineeringAgentService {
     private final ToolExecutor toolExecutor;
     private final EngineeringAgent engineeringAgent;
     private final RepositoryContextService repositoryContextService;
+    private final ExecutionObservationService observationService;
+    private final DiagnosisService diagnosisService;
 
     public EngineeringAgentService(
             ToolExecutor toolExecutor,
             EngineeringAgent engineeringAgent,
-            RepositoryContextService repositoryContextService) {
+            RepositoryContextService repositoryContextService,
+            ExecutionObservationService observationService,
+            DiagnosisService diagnosisService) {
 
         this.toolExecutor = toolExecutor;
         this.engineeringAgent = engineeringAgent;
         this.repositoryContextService =
                 repositoryContextService;
+        this.observationService =
+                observationService;
+        this.diagnosisService = diagnosisService;
     }
 
     public String execute(EngineeringTask task) {
@@ -39,6 +44,7 @@ public class EngineeringAgentService {
                 new StringBuilder();
 
         response.append("""
+                
                 Engineering Task
                 -----------------
                 Repository: %s
@@ -53,20 +59,6 @@ public class EngineeringAgentService {
                 task.task(),
                 context
         ));
-
-        /*
-         * Stage 13:
-         *
-         * The agent may decide to CONTINUE or STOP.
-         *
-         * CONTINUE:
-         *     execute the selected tool
-         *     observe the result
-         *     ask the agent what to do next
-         *
-         * STOP:
-         *     finish execution
-         */
 
         int maxIterations = 5;
 
@@ -112,7 +104,7 @@ public class EngineeringAgentService {
             ));
 
             /*
-             * Agent decided that the task is complete.
+             * The agent decided that no further action is required.
              */
             if ("STOP".equalsIgnoreCase(
                     decision.action())) {
@@ -127,7 +119,7 @@ public class EngineeringAgentService {
             }
 
             /*
-             * Agent decided that another command should be executed.
+             * Validate the action before executing anything.
              */
             if (!"CONTINUE".equalsIgnoreCase(
                     decision.action())) {
@@ -142,7 +134,7 @@ public class EngineeringAgentService {
             }
 
             /*
-             * Execute the command through the Tool Executor.
+             * Execute the selected engineering tool.
              */
             SandboxResult result =
                     toolExecutor.execute(
@@ -151,8 +143,14 @@ public class EngineeringAgentService {
                             decision.command()
                     );
 
-            String observation =
-                    observe(result);
+            /*
+             * Convert raw execution output into structured
+             * execution facts.
+             */
+            ExecutionObservation observation =
+                    observationService.observe(result);
+            Diagnosis diagnosis =
+                    diagnosisService.diagnose(result);
 
             response.append("""
                     Tool Execution #%d
@@ -160,9 +158,18 @@ public class EngineeringAgentService {
                     Exit Code: %d
                     Successful: %s
 
-                    Agent Observation
-                    -----------------
-                    %s
+                    Execution Observation
+                    ---------------------
+                    Successful: %s
+                    Tests Executed: %s
+                    Diagnosis Required: %s
+                    Summary: %s
+                    
+                    Diagnosis
+                    ---------
+                    Required: %s
+                    Summary: %s
+                    Evidence: %s
 
                     STDOUT
                     ------
@@ -176,14 +183,21 @@ public class EngineeringAgentService {
                     iteration,
                     result.exitCode(),
                     result.successful(),
-                    observation,
+                    observation.successful(),
+                    observation.testsExecuted(),
+                    observation.diagnosisRequired(),
+                    observation.summary(),
+                    diagnosis.required(),
+                    diagnosis.summary(),
+                    diagnosis.evidence(),
                     result.stdout(),
                     result.stderr()
             ));
 
             /*
-             * Give the execution result back to the agent
-             * on the next iteration.
+             * Store both the raw execution result and the structured
+             * observation so the agent can use them during its
+             * next decision.
              */
             executionHistory.append("""
                     Execution #%d
@@ -200,8 +214,20 @@ public class EngineeringAgentService {
                     Successful:
                     %s
 
-                    Observation:
+                    Execution Observation:
+                    Successful:
                     %s
+                    Tests Executed:
+                    %s
+                    Diagnosis Required:
+                    %s
+                    Summary:
+                    %s
+                    
+                    Diagnosis:
+                    Required: %s
+                    Summary: %s
+                    Evidence: %s
 
                     STDOUT:
                     %s
@@ -215,41 +241,18 @@ public class EngineeringAgentService {
                     decision.command(),
                     result.exitCode(),
                     result.successful(),
-                    observation,
+                    observation.successful(),
+                    observation.testsExecuted(),
+                    observation.diagnosisRequired(),
+                    observation.summary(),
+                    diagnosis.required(),
+                    diagnosis.summary(),
+                    diagnosis.evidence(),
                     result.stdout(),
                     result.stderr()
             ));
         }
 
         return response.toString();
-    }
-
-    private String observe(
-            SandboxResult result) {
-
-        if (result.exitCode() == 0) {
-
-            if (result.stdout().contains(
-                    "NO-SOURCE")) {
-
-                return """
-                        Execution completed successfully,
-                        but no test source files were found.
-                        The command succeeded, but this does not
-                        prove that tests actually executed.
-                        """;
-            }
-
-            return """
-                    Execution completed successfully.
-                    The selected command returned exit code 0.
-                    """;
-        }
-
-        return """
-                Execution failed.
-                The selected command returned a non-zero exit code.
-                Further diagnosis is required.
-                """;
     }
 }

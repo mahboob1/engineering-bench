@@ -1,12 +1,11 @@
 package com.engineeringbench.service;
 
 import com.engineeringbench.agent.EngineeringAgent;
-import com.engineeringbench.model.AgentDecision;
-import com.engineeringbench.model.EngineeringTask;
-import com.engineeringbench.model.SandboxResult;
+import com.engineeringbench.model.*;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -26,11 +25,19 @@ class EngineeringAgentServiceTest {
         RepositoryContextService repositoryContextService =
                 mock(RepositoryContextService.class);
 
+        ExecutionObservationService observationService =
+                mock(ExecutionObservationService.class);
+
+        DiagnosisService diagnosisService =
+                mock(DiagnosisService.class);
+
         EngineeringAgentService service =
                 new EngineeringAgentService(
                         toolExecutor,
                         engineeringAgent,
-                        repositoryContextService
+                        repositoryContextService,
+                        observationService,
+                        diagnosisService
                 );
 
         EngineeringTask task =
@@ -71,11 +78,34 @@ class EngineeringAgentServiceTest {
                         ""
                 );
 
+        ExecutionObservation observation =
+                new ExecutionObservation(
+                        true,
+                        true,
+                        false,
+                        "Execution succeeded and tests were executed."
+                );
+
+        Diagnosis successfulDiagnosis =
+                new Diagnosis(
+                        false,
+                        "Execution completed successfully.",
+                        "BUILD SUCCESSFUL"
+                );
+
         when(toolExecutor.execute(
                 "run_command",
                 task.repository(),
                 "./gradlew test"
         )).thenReturn(successfulResult);
+
+        when(observationService.observe(
+                successfulResult
+        )).thenReturn(observation);
+
+        when(diagnosisService.diagnose(
+                successfulResult
+        )).thenReturn(successfulDiagnosis);
 
         // Act
 
@@ -100,6 +130,12 @@ class EngineeringAgentServiceTest {
                 result.contains("BUILD SUCCESSFUL")
         );
 
+        assertTrue(
+                result.contains(
+                        "Execution succeeded and tests were executed."
+                )
+        );
+
         verify(
                 toolExecutor,
                 times(1)
@@ -121,6 +157,20 @@ class EngineeringAgentServiceTest {
                 task.repository(),
                 task.task()
         );
+
+        verify(
+                observationService,
+                times(1)
+        ).observe(
+                successfulResult
+        );
+
+        verify(
+                diagnosisService,
+                times(1)
+        ).diagnose(
+                successfulResult
+        );
     }
 
 
@@ -138,11 +188,19 @@ class EngineeringAgentServiceTest {
         RepositoryContextService repositoryContextService =
                 mock(RepositoryContextService.class);
 
+        ExecutionObservationService observationService =
+                mock(ExecutionObservationService.class);
+
+        DiagnosisService diagnosisService =
+                mock(DiagnosisService.class);
+
         EngineeringAgentService service =
                 new EngineeringAgentService(
                         toolExecutor,
                         engineeringAgent,
-                        repositoryContextService
+                        repositoryContextService,
+                        observationService,
+                        diagnosisService
                 );
 
         EngineeringTask task =
@@ -158,10 +216,6 @@ class EngineeringAgentServiceTest {
                 "build.gradle contains a Gradle project."
         );
 
-        /*
-         * Agent #1:
-         * Try the test command.
-         */
         when(engineeringAgent.decide(anyString()))
                 .thenReturn(
                         new AgentDecision(
@@ -171,11 +225,6 @@ class EngineeringAgentServiceTest {
                                 "Run the tests to evaluate the repository."
                         ),
 
-                        /*
-                         * Agent #2:
-                         * The first command failed, so choose another
-                         * command.
-                         */
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
@@ -183,10 +232,6 @@ class EngineeringAgentServiceTest {
                                 "The previous command failed, so compileJava should be attempted."
                         ),
 
-                        /*
-                         * Agent #3:
-                         * Stop after the second execution.
-                         */
                         new AgentDecision(
                                 "STOP",
                                 "none",
@@ -195,9 +240,6 @@ class EngineeringAgentServiceTest {
                         )
                 );
 
-        /*
-         * First command fails.
-         */
         SandboxResult failedResult =
                 new SandboxResult(
                         1,
@@ -207,9 +249,6 @@ class EngineeringAgentServiceTest {
                         ""
                 );
 
-        /*
-         * Second command succeeds.
-         */
         SandboxResult successfulResult =
                 new SandboxResult(
                         0,
@@ -217,6 +256,36 @@ class EngineeringAgentServiceTest {
                         "",
                         "",
                         ""
+                );
+
+        ExecutionObservation failedObservation =
+                new ExecutionObservation(
+                        false,
+                        false,
+                        true,
+                        "Execution failed. Diagnosis is required."
+                );
+
+        ExecutionObservation successfulObservation =
+                new ExecutionObservation(
+                        true,
+                        true,
+                        false,
+                        "Execution succeeded and tests were executed."
+                );
+
+        Diagnosis failedDiagnosis =
+                new Diagnosis(
+                        true,
+                        "The command failed during execution.",
+                        "Compilation failed"
+                );
+
+        Diagnosis successfulDiagnosis =
+                new Diagnosis(
+                        false,
+                        "Execution completed successfully.",
+                        "BUILD SUCCESSFUL"
                 );
 
         when(toolExecutor.execute(
@@ -231,6 +300,22 @@ class EngineeringAgentServiceTest {
                 "./gradlew compileJava"
         )).thenReturn(successfulResult);
 
+        when(observationService.observe(
+                failedResult
+        )).thenReturn(failedObservation);
+
+        when(observationService.observe(
+                successfulResult
+        )).thenReturn(successfulObservation);
+
+        when(diagnosisService.diagnose(
+                failedResult
+        )).thenReturn(failedDiagnosis);
+
+        when(diagnosisService.diagnose(
+                successfulResult
+        )).thenReturn(successfulDiagnosis);
+
         // Act
 
         String result =
@@ -238,23 +323,14 @@ class EngineeringAgentServiceTest {
 
         // Assert
 
-        /*
-         * The first command should have failed.
-         */
         assertTrue(
                 result.contains("Exit Code: 1")
         );
 
-        /*
-         * The second command should have been selected.
-         */
         assertTrue(
                 result.contains("./gradlew compileJava")
         );
 
-        /*
-         * The second command should have succeeded.
-         */
         assertTrue(
                 result.contains("Exit Code: 0")
         );
@@ -263,21 +339,17 @@ class EngineeringAgentServiceTest {
                 result.contains("BUILD SUCCESSFUL")
         );
 
-        /*
-         * Agent should have made three decisions:
-         *
-         * 1. CONTINUE → ./gradlew test
-         * 2. CONTINUE → ./gradlew compileJava
-         * 3. STOP
-         */
+        assertTrue(
+                result.contains(
+                        "Diagnosis Required: true"
+                )
+        );
+
         verify(
                 engineeringAgent,
                 times(3)
         ).decide(anyString());
 
-        /*
-         * First command executed exactly once.
-         */
         verify(
                 toolExecutor,
                 times(1)
@@ -287,9 +359,6 @@ class EngineeringAgentServiceTest {
                 "./gradlew test"
         );
 
-        /*
-         * Second command executed exactly once.
-         */
         verify(
                 toolExecutor,
                 times(1)
@@ -297,6 +366,257 @@ class EngineeringAgentServiceTest {
                 "run_command",
                 task.repository(),
                 "./gradlew compileJava"
+        );
+
+        verify(
+                observationService,
+                times(1)
+        ).observe(
+                failedResult
+        );
+
+        verify(
+                observationService,
+                times(1)
+        ).observe(
+                successfulResult
+        );
+
+        verify(
+                diagnosisService,
+                times(1)
+        ).diagnose(
+                failedResult
+        );
+
+        verify(
+                diagnosisService,
+                times(1)
+        ).diagnose(
+                successfulResult
+        );
+    }
+
+    @Test
+    void shouldContinueWhenExecutionRequiresDiagnosis() {
+
+        // Arrange
+
+        ToolExecutor toolExecutor =
+                mock(ToolExecutor.class);
+
+        EngineeringAgent engineeringAgent =
+                mock(EngineeringAgent.class);
+
+        RepositoryContextService repositoryContextService =
+                mock(RepositoryContextService.class);
+
+        ExecutionObservationService observationService =
+                mock(ExecutionObservationService.class);
+
+        DiagnosisService diagnosisService =
+                mock(DiagnosisService.class);
+
+        EngineeringAgentService service =
+                new EngineeringAgentService(
+                        toolExecutor,
+                        engineeringAgent,
+                        repositoryContextService,
+                        observationService,
+                        diagnosisService
+                );
+
+        EngineeringTask task =
+                new EngineeringTask(
+                        "https://github.com/mahboob1/engineering-bench.git",
+                        "Run the repository tests"
+                );
+
+        when(repositoryContextService.retrieve(
+                task.repository(),
+                task.task()
+        )).thenReturn(
+                "build.gradle contains a Gradle project."
+        );
+
+        /*
+         * First decision:
+         * Agent attempts to run the tests.
+         */
+        when(engineeringAgent.decide(anyString()))
+                .thenReturn(
+                        new AgentDecision(
+                                "CONTINUE",
+                                "run_command",
+                                "./gradlew test",
+                                "Run the repository tests."
+                        ),
+
+                        /*
+                         * Second decision:
+                         * After seeing the failure observation,
+                         * the agent should NOT stop immediately.
+                         */
+                        new AgentDecision(
+                                "CONTINUE",
+                                "run_command",
+                                "./gradlew compileJava",
+                                "The previous execution failed and requires further investigation."
+                        ),
+
+                        /*
+                         * Third decision:
+                         * Agent eventually stops.
+                         */
+                        new AgentDecision(
+                                "STOP",
+                                "none",
+                                "none",
+                                "No further action is required."
+                        )
+                );
+
+        SandboxResult failedResult =
+                new SandboxResult(
+                        1,
+                        "",
+                        "Compilation failed",
+                        "",
+                        ""
+                );
+
+        ExecutionObservation failedObservation =
+                new ExecutionObservation(
+                        false,
+                        false,
+                        true,
+                        "Execution failed. Diagnosis is required."
+                );
+
+        Diagnosis failedDiagnosis =
+                new Diagnosis(
+                        true,
+                        "The command failed during execution.",
+                        "Compilation failed"
+                );
+
+        SandboxResult successfulResult =
+                new SandboxResult(
+                        0,
+                        "BUILD SUCCESSFUL",
+                        "",
+                        "",
+                        ""
+                );
+
+        ExecutionObservation successfulObservation =
+                new ExecutionObservation(
+                        true,
+                        true,
+                        false,
+                        "Execution succeeded and tests were executed."
+                );
+
+        Diagnosis successfulDiagnosis =
+                new Diagnosis(
+                        false,
+                        "Execution completed successfully.",
+                        "BUILD SUCCESSFUL"
+                );
+
+        when(toolExecutor.execute(
+                "run_command",
+                task.repository(),
+                "./gradlew test"
+        )).thenReturn(failedResult);
+
+        when(toolExecutor.execute(
+                "run_command",
+                task.repository(),
+                "./gradlew compileJava"
+        )).thenReturn(successfulResult);
+
+        when(observationService.observe(
+                failedResult
+        )).thenReturn(failedObservation);
+
+        when(observationService.observe(
+                successfulResult
+        )).thenReturn(successfulObservation);
+
+        when(diagnosisService.diagnose(
+                failedResult
+        )).thenReturn(failedDiagnosis);
+
+        when(diagnosisService.diagnose(
+                successfulResult
+        )).thenReturn(successfulDiagnosis);
+
+        // Act
+
+        String result =
+                service.execute(task);
+
+        // Assert
+
+        assertTrue(
+                result.contains(
+                        "Diagnosis Required: true"
+                )
+        );
+
+        assertTrue(
+                result.contains(
+                        "./gradlew compileJava"
+                )
+        );
+
+        assertTrue(
+                result.contains(
+                        "Execution failed. Diagnosis is required."
+                )
+        );
+
+        /*
+         * Most important assertion:
+         *
+         * The agent was called again after the failed execution.
+         */
+        verify(
+                engineeringAgent,
+                times(3)
+        ).decide(anyString());
+
+        verify(
+                toolExecutor,
+                times(1)
+        ).execute(
+                "run_command",
+                task.repository(),
+                "./gradlew test"
+        );
+
+        verify(
+                toolExecutor,
+                times(1)
+        ).execute(
+                "run_command",
+                task.repository(),
+                "./gradlew compileJava"
+        );
+
+        verify(
+                observationService,
+                times(1)
+        ).observe(
+                failedResult
+        );
+
+        verify(
+                diagnosisService,
+                times(1)
+        ).diagnose(
+                failedResult
         );
     }
 }
