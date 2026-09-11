@@ -19,10 +19,29 @@ public class DiagnosisService {
             );
         }
 
+        String stderr = result.stderr();
+
+        if (isCompilationFailure(stderr)) {
+
+            return new Diagnosis(
+                    true,
+                    "COMPILATION_FAILURE",
+                    stderr
+            );
+        }
+
         return new Diagnosis(
                 true,
                 "The command failed during execution.",
-                result.stderr()
+                stderr
         );
+    }
+
+    private boolean isCompilationFailure(
+            String stderr) {
+
+        return stderr.contains("error:")
+                || stderr.contains("cannot find symbol")
+                || stderr.contains("Compilation failed");
     }
 }

@@ -20,7 +20,7 @@ class DiagnosisServiceTest {
                 new SandboxResult(
                         1,
                         "",
-                        "Compilation failed",
+                        "Process terminated unexpectedly",
                         "",
                         ""
                 );
@@ -42,7 +42,7 @@ class DiagnosisServiceTest {
         );
 
         assertEquals(
-                "Compilation failed",
+                "Process terminated unexpectedly",
                 diagnosis.evidence()
         );
     }
@@ -84,6 +84,91 @@ class DiagnosisServiceTest {
         assertEquals(
                 "BUILD SUCCESSFUL",
                 diagnosis.evidence()
+        );
+    }
+
+    @Test
+    void shouldExtractMeaningfulDiagnosisFromCompilationFailure() {
+
+        // Arrange
+
+        DiagnosisService service =
+                new DiagnosisService();
+
+        SandboxResult result =
+                new SandboxResult(
+                        1,
+                        "",
+                        """
+                        /workspace/repository/src/main/java/UserController.java:
+                        error: cannot find symbol
+                        symbol: class UserService
+                        location: class UserController
+                        """,
+                        "",
+                        ""
+                );
+
+        // Act
+
+        Diagnosis diagnosis =
+                service.diagnose(result);
+
+        // Assert
+
+        assertTrue(
+                diagnosis.required()
+        );
+
+        assertTrue(
+                diagnosis.summary()
+                        .toLowerCase()
+                        .contains("compilation")
+        );
+
+        assertTrue(
+                diagnosis.evidence()
+                        .contains("cannot find symbol")
+        );
+
+        assertTrue(
+                diagnosis.evidence()
+                        .contains("UserService")
+        );
+    }
+
+    @Test
+    void shouldClassifyCompilationFailure() {
+
+        // Arrange
+
+        DiagnosisService service =
+                new DiagnosisService();
+
+        SandboxResult result =
+                new SandboxResult(
+                        1,
+                        "",
+                        """
+                        /workspace/repository/src/main/java/UserController.java:
+                        error: cannot find symbol
+                        symbol: class UserService
+                        location: class UserController
+                        """,
+                        "",
+                        ""
+                );
+
+        // Act
+
+        Diagnosis diagnosis =
+                service.diagnose(result);
+
+        // Assert
+
+        assertEquals(
+                "COMPILATION_FAILURE",
+                diagnosis.summary()
         );
     }
 }

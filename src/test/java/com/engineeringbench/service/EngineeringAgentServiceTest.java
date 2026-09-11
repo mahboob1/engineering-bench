@@ -3,6 +3,7 @@ package com.engineeringbench.service;
 import com.engineeringbench.agent.EngineeringAgent;
 import com.engineeringbench.model.*;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -618,5 +619,337 @@ class EngineeringAgentServiceTest {
         ).diagnose(
                 failedResult
         );
+    }
+
+    @Test
+    void shouldProvideDiagnosisToAgentOnNextDecision() {
+
+        // Arrange
+
+        ToolExecutor toolExecutor =
+                mock(ToolExecutor.class);
+
+        EngineeringAgent engineeringAgent =
+                mock(EngineeringAgent.class);
+
+        RepositoryContextService repositoryContextService =
+                mock(RepositoryContextService.class);
+
+        ExecutionObservationService observationService =
+                mock(ExecutionObservationService.class);
+
+        DiagnosisService diagnosisService =
+                mock(DiagnosisService.class);
+
+        EngineeringAgentService service =
+                new EngineeringAgentService(
+                        toolExecutor,
+                        engineeringAgent,
+                        repositoryContextService,
+                        observationService,
+                        diagnosisService
+                );
+
+        EngineeringTask task =
+                new EngineeringTask(
+                        "https://github.com/mahboob1/engineering-bench.git",
+                        "Run the repository tests"
+                );
+
+        when(repositoryContextService.retrieve(
+                task.repository(),
+                task.task()
+        )).thenReturn(
+                "build.gradle contains a Gradle project."
+        );
+
+        when(engineeringAgent.decide(anyString()))
+                .thenReturn(
+                        new AgentDecision(
+                                "CONTINUE",
+                                "run_command",
+                                "./gradlew test",
+                                "Run the repository tests."
+                        ),
+                        new AgentDecision(
+                                "STOP",
+                                "none",
+                                "none",
+                                "Stop after reviewing the failure."
+                        )
+                );
+
+        SandboxResult failedResult =
+                new SandboxResult(
+                        1,
+                        "",
+                        "Compilation failed",
+                        "",
+                        ""
+                );
+
+        ExecutionObservation failedObservation =
+                new ExecutionObservation(
+                        false,
+                        false,
+                        true,
+                        "Execution failed. Diagnosis is required."
+                );
+
+        Diagnosis diagnosis =
+                new Diagnosis(
+                        true,
+                        "The command failed during execution.",
+                        "Compilation failed"
+                );
+
+        when(toolExecutor.execute(
+                "run_command",
+                task.repository(),
+                "./gradlew test"
+        )).thenReturn(failedResult);
+
+        when(observationService.observe(
+                failedResult
+        )).thenReturn(failedObservation);
+
+        when(diagnosisService.diagnose(
+                failedResult
+        )).thenReturn(diagnosis);
+
+        // Act
+
+        service.execute(task);
+
+        // Assert
+
+        var decisionCaptor =
+                org.mockito.ArgumentCaptor.forClass(
+                        String.class
+                );
+
+        verify(
+                engineeringAgent,
+                times(2)
+        ).decide(
+                decisionCaptor.capture()
+        );
+
+        String secondAgentInput =
+                decisionCaptor.getAllValues().get(1);
+
+        assertTrue(
+                secondAgentInput.contains(
+                        "Diagnosis:"
+                )
+        );
+
+        assertTrue(
+                secondAgentInput.contains(
+                        "The command failed during execution."
+                )
+        );
+
+        assertTrue(
+                secondAgentInput.contains(
+                        "Compilation failed"
+                )
+        );
+    }
+
+    @Test
+    void shouldProvideCompilationDiagnosisToAgentOnNextDecision() {
+
+        EngineeringAgent agent =
+                mock(EngineeringAgent.class);
+
+        ToolExecutor toolExecutor =
+                mock(ToolExecutor.class);
+
+        RepositoryContextService repositoryContextService =
+                mock(RepositoryContextService.class);
+
+        ExecutionObservationService observationService =
+                new ExecutionObservationService();
+
+        DiagnosisService diagnosisService =
+                new DiagnosisService();
+
+        when(repositoryContextService.retrieve(
+                anyString(),
+                anyString()))
+                .thenReturn("Repository evidence");
+
+        when(agent.decide(anyString()))
+                .thenReturn(
+                        new AgentDecision(
+                                "CONTINUE",
+                                "run_command",
+                                "./gradlew test",
+                                "Run tests"
+                        ),
+                        new AgentDecision(
+                                "STOP",
+                                "none",
+                                "none",
+                                "Stop after diagnosis"
+                        )
+                );
+
+        when(toolExecutor.execute(
+                anyString(),
+                anyString(),
+                anyString()))
+                .thenReturn(
+                        new SandboxResult(
+                                1,
+                                "",
+                                """
+                                /src/main/java/UserController.java:
+                                error: cannot find symbol
+                                symbol: class UserService
+                                """,
+                                "",
+                                ""
+                        )
+                );
+
+        EngineeringAgentService service =
+                new EngineeringAgentService(
+                        toolExecutor,
+                        agent,
+                        repositoryContextService,
+                        observationService,
+                        diagnosisService
+                );
+
+        EngineeringTask task =
+                new EngineeringTask(
+                        "https://github.com/test/repository.git",
+                        "Run the repository tests"
+                );
+
+        service.execute(task);
+
+        ArgumentCaptor<String> captor =
+                ArgumentCaptor.forClass(String.class);
+
+        verify(agent, times(2))
+                .decide(captor.capture());
+
+        String secondAgentInput =
+                captor.getAllValues().get(1);
+
+        assertTrue(
+                secondAgentInput.contains(
+                        "COMPILATION_FAILURE"
+                )
+        );
+
+        assertTrue(
+                secondAgentInput.contains(
+                        "cannot find symbol"
+                )
+        );
+
+        assertTrue(
+                secondAgentInput.contains(
+                        "UserService"
+                )
+        );
+    }
+
+    @Test
+    void shouldAllowAgentToChooseRecoveryAfterCompilationFailure() {
+
+        EngineeringAgent agent =
+                mock(EngineeringAgent.class);
+
+        ToolExecutor toolExecutor =
+                mock(ToolExecutor.class);
+
+        RepositoryContextService repositoryContextService =
+                mock(RepositoryContextService.class);
+
+        ExecutionObservationService observationService =
+                new ExecutionObservationService();
+
+        DiagnosisService diagnosisService =
+                new DiagnosisService();
+
+        when(repositoryContextService.retrieve(
+                anyString(),
+                anyString()))
+                .thenReturn("Repository evidence");
+
+        when(agent.decide(anyString()))
+                .thenReturn(
+                        new AgentDecision(
+                                "CONTINUE",
+                                "run_command",
+                                "./gradlew test",
+                                "Run tests"
+                        ),
+                        new AgentDecision(
+                                "CONTINUE",
+                                "run_command",
+                                "./gradlew compileJava",
+                                "Re-run compilation after diagnosing the failure"
+                        ),
+                        new AgentDecision(
+                                "STOP",
+                                "none",
+                                "none",
+                                "Stop"
+                        )
+                );
+
+        when(toolExecutor.execute(
+                anyString(),
+                anyString(),
+                anyString()))
+                .thenReturn(
+                        new SandboxResult(
+                                1,
+                                "",
+                                """
+                                error: cannot find symbol
+                                symbol: class UserService
+                                """,
+                                "",
+                                ""
+                        )
+                );
+
+        EngineeringAgentService service =
+                new EngineeringAgentService(
+                        toolExecutor,
+                        agent,
+                        repositoryContextService,
+                        observationService,
+                        diagnosisService
+                );
+
+        EngineeringTask task =
+                new EngineeringTask(
+                        "https://github.com/test/repository.git",
+                        "Run the repository tests"
+                );
+
+        service.execute(task);
+
+        verify(toolExecutor, times(2))
+                .execute(
+                        anyString(),
+                        anyString(),
+                        anyString()
+                );
+
+        verify(toolExecutor)
+                .execute(
+                        anyString(),
+                        anyString(),
+                        eq("./gradlew compileJava")
+                );
     }
 }

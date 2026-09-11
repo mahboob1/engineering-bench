@@ -50,3 +50,7 @@ dependencies {
     implementation 'software.amazon.awssdk:cloudwatchlogs'
     implementation 'software.amazon.awssdk:signin'
 }
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
