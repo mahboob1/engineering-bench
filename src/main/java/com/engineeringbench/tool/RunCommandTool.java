@@ -34,4 +34,17 @@ public class RunCommandTool implements EngineeringTool {
                 List.of(command)
         );
     }
+
+    @Override
+    public SandboxResult execute(
+            String repository,
+            String revision,
+            String command) {
+
+        return sandboxService.execute(
+                repository,
+                revision,
+                List.of(command)
+        );
+    }
 }

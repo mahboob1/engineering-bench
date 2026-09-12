@@ -10,4 +10,12 @@ public interface EngineeringTool {
             String repository,
             String command
     );
+
+    default SandboxResult execute(
+            String repository,
+            String revision,
+            String command
+    ) {
+        return execute(repository, command);
+    }
 }

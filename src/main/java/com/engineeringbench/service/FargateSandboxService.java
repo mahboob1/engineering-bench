@@ -19,6 +19,7 @@ public class FargateSandboxService implements SandboxService {
     private final CloudWatchLogsClient logsClient;
 
     public FargateSandboxService() {
+
         this.ecsClient = EcsClient.builder()
                 .region(Region.US_EAST_2)
                 .build();
@@ -33,7 +34,21 @@ public class FargateSandboxService implements SandboxService {
             String repository,
             List<String> commands) {
 
-        StringBuilder script = new StringBuilder();
+        return execute(
+                repository,
+                null,
+                commands
+        );
+    }
+
+    @Override
+    public SandboxResult execute(
+            String repository,
+            String revision,
+            List<String> commands) {
+
+        StringBuilder script =
+                new StringBuilder();
 
         script.append("""
                 set -e
@@ -45,10 +60,25 @@ public class FargateSandboxService implements SandboxService {
 
                 cd /workspace/repository
 
-                echo "Executing commands..."
                 """.formatted(repository));
 
+        if (revision != null
+                && !revision.isBlank()) {
+
+            script.append("""
+                    echo "Checking out revision..."
+                    git checkout %s
+                    echo "Revision checked out successfully"
+
+                    """.formatted(revision));
+        }
+
+        script.append("""
+                echo "Executing commands..."
+                """);
+
         for (String command : commands) {
+
             script.append("echo \">>> ")
                     .append(command)
                     .append("\"\n");
@@ -62,54 +92,77 @@ public class FargateSandboxService implements SandboxService {
                 echo "All commands completed successfully"
                 """);
 
-        RunTaskRequest request = RunTaskRequest.builder()
-                .cluster("engineering-bench")
-                .taskDefinition("engineering-bench-sandbox:1")
-                .launchType(LaunchType.FARGATE)
-                .networkConfiguration(
-                        NetworkConfiguration.builder()
-                                .awsvpcConfiguration(
-                                        AwsVpcConfiguration.builder()
-                                                .subnets("subnet-0f2014463b95a7c00")
-                                                .securityGroups("sg-05db641b523a00737")
-                                                .assignPublicIp(AssignPublicIp.ENABLED)
-                                                .build())
-                                .build())
-                .overrides(
-                        TaskOverride.builder()
-                                .containerOverrides(
-                                        ContainerOverride.builder()
-                                                .name("engineering-bench-sandbox")
-                                                .command(
-                                                        "bash",
-                                                        "-c",
-                                                        script.toString()
-                                                )
-                                                .build())
-                                .build())
-                .build();
+        RunTaskRequest request =
+                RunTaskRequest.builder()
+                        .cluster("engineering-bench")
+                        .taskDefinition(
+                                "engineering-bench-sandbox:1"
+                        )
+                        .launchType(
+                                LaunchType.FARGATE
+                        )
+                        .networkConfiguration(
+                                NetworkConfiguration.builder()
+                                        .awsvpcConfiguration(
+                                                AwsVpcConfiguration.builder()
+                                                        .subnets(
+                                                                "subnet-0f2014463b95a7c00"
+                                                        )
+                                                        .securityGroups(
+                                                                "sg-05db641b523a00737"
+                                                        )
+                                                        .assignPublicIp(
+                                                                AssignPublicIp.ENABLED
+                                                        )
+                                                        .build()
+                                        )
+                                        .build()
+                        )
+                        .overrides(
+                                TaskOverride.builder()
+                                        .containerOverrides(
+                                                ContainerOverride.builder()
+                                                        .name(
+                                                                "engineering-bench-sandbox"
+                                                        )
+                                                        .command(
+                                                                "bash",
+                                                                "-c",
+                                                                script.toString()
+                                                        )
+                                                        .build()
+                                        )
+                                        .build()
+                        )
+                        .build();
 
-        RunTaskResponse response = ecsClient.runTask(request);
+        RunTaskResponse response =
+                ecsClient.runTask(request);
 
         if (response.failures() != null
                 && !response.failures().isEmpty()) {
 
             throw new IllegalStateException(
                     "Failed to start Fargate task: "
-                            + response.failures());
+                            + response.failures()
+            );
         }
 
         String taskArn =
-                response.tasks().get(0).taskArn();
+                response.tasks()
+                        .get(0)
+                        .taskArn();
 
         DescribeTasksResponse taskResponse =
                 waitForTask(taskArn);
 
         Task task =
-                taskResponse.tasks().get(0);
+                taskResponse.tasks()
+                        .get(0);
 
         Container container =
-                task.containers().get(0);
+                task.containers()
+                        .get(0);
 
         Integer exitCode =
                 container.exitCode();
@@ -117,22 +170,31 @@ public class FargateSandboxService implements SandboxService {
         String stdout;
 
         try {
-            stdout = getCloudWatchLogs(taskArn);
+
+            stdout =
+                    getCloudWatchLogs(taskArn);
+
         } catch (InterruptedException e) {
 
             Thread.currentThread().interrupt();
 
             throw new IllegalStateException(
                     "Interrupted while retrieving Fargate logs",
-                    e);
+                    e
+            );
         }
 
         return new SandboxResult(
-                exitCode != null ? exitCode : -1,
+                exitCode != null
+                        ? exitCode
+                        : -1,
+
                 stdout,
+
                 container.reason() != null
                         ? container.reason()
                         : "",
+
                 "",
                 ""
         );
@@ -146,26 +208,35 @@ public class FargateSandboxService implements SandboxService {
             DescribeTasksResponse response =
                     ecsClient.describeTasks(
                             DescribeTasksRequest.builder()
-                                    .cluster("engineering-bench")
+                                    .cluster(
+                                            "engineering-bench"
+                                    )
                                     .tasks(taskArn)
-                                    .build());
+                                    .build()
+                    );
 
             Task task =
-                    response.tasks().get(0);
+                    response.tasks()
+                            .get(0);
 
-            if ("STOPPED".equals(task.lastStatus())) {
+            if ("STOPPED".equals(
+                    task.lastStatus())) {
+
                 return response;
             }
 
             try {
+
                 Thread.sleep(2000);
+
             } catch (InterruptedException e) {
 
                 Thread.currentThread().interrupt();
 
                 throw new IllegalStateException(
                         "Interrupted while waiting for Fargate task",
-                        e);
+                        e
+                );
             }
         }
     }
@@ -176,7 +247,8 @@ public class FargateSandboxService implements SandboxService {
 
         String taskId =
                 taskArn.substring(
-                        taskArn.lastIndexOf("/") + 1);
+                        taskArn.lastIndexOf("/") + 1
+                );
 
         String logStreamName =
                 "sandbox/engineering-bench-sandbox/"
@@ -188,8 +260,11 @@ public class FargateSandboxService implements SandboxService {
                 logsClient.getLogEvents(
                         GetLogEventsRequest.builder()
                                 .logGroupName(
-                                        "/ecs/engineering-bench-sandbox")
-                                .logStreamName(logStreamName)
+                                        "/ecs/engineering-bench-sandbox"
+                                )
+                                .logStreamName(
+                                        logStreamName
+                                )
                                 .startFromHead(true)
                                 .build()
                 );

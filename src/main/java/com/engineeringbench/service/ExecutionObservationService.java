@@ -15,7 +15,7 @@ public class ExecutionObservationService {
 
         boolean testsExecuted =
                 successful
-                        && !result.stdout().contains("NO-SOURCE");
+                        && testsWereExecuted(result.stdout());
 
         boolean diagnosisRequired =
                 !successful;
@@ -44,5 +44,16 @@ public class ExecutionObservationService {
                 diagnosisRequired,
                 summary
         );
+    }
+
+    private boolean testsWereExecuted(
+            String stdout) {
+
+        if (stdout == null || stdout.isBlank()) {
+            return false;
+        }
+
+        return stdout.contains("> Task :test")
+                && !stdout.contains("> Task :test NO-SOURCE");
     }
 }

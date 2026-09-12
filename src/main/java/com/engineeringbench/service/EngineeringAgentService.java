@@ -140,6 +140,7 @@ public class EngineeringAgentService {
                     toolExecutor.execute(
                             decision.toolName(),
                             task.repository(),
+                            task.revision(),
                             decision.command()
                     );
 

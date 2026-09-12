@@ -43,7 +43,8 @@ class EngineeringAgentServiceTest {
 
         EngineeringTask task =
                 new EngineeringTask(
-                        "https://github.com/mahboob1/engineering-bench.git",
+                        "https://github.com/test/repository.git",
+                        "main",
                         "Run the repository tests"
                 );
 
@@ -97,6 +98,7 @@ class EngineeringAgentServiceTest {
         when(toolExecutor.execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew test"
         )).thenReturn(successfulResult);
 
@@ -143,6 +145,7 @@ class EngineeringAgentServiceTest {
         ).execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew test"
         );
 
@@ -206,8 +209,9 @@ class EngineeringAgentServiceTest {
 
         EngineeringTask task =
                 new EngineeringTask(
-                        "https://github.com/mahboob1/engineering-bench.git",
-                        "Build the repository"
+                        "https://github.com/test/repository.git",
+                        "main",
+                        "Run the repository tests"
                 );
 
         when(repositoryContextService.retrieve(
@@ -292,12 +296,14 @@ class EngineeringAgentServiceTest {
         when(toolExecutor.execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew test"
         )).thenReturn(failedResult);
 
         when(toolExecutor.execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew compileJava"
         )).thenReturn(successfulResult);
 
@@ -357,6 +363,7 @@ class EngineeringAgentServiceTest {
         ).execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew test"
         );
 
@@ -366,6 +373,7 @@ class EngineeringAgentServiceTest {
         ).execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew compileJava"
         );
 
@@ -429,7 +437,8 @@ class EngineeringAgentServiceTest {
 
         EngineeringTask task =
                 new EngineeringTask(
-                        "https://github.com/mahboob1/engineering-bench.git",
+                        "https://github.com/test/repository.git",
+                        "main",
                         "Run the repository tests"
                 );
 
@@ -528,12 +537,14 @@ class EngineeringAgentServiceTest {
         when(toolExecutor.execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew test"
         )).thenReturn(failedResult);
 
         when(toolExecutor.execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew compileJava"
         )).thenReturn(successfulResult);
 
@@ -594,6 +605,7 @@ class EngineeringAgentServiceTest {
         ).execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew test"
         );
 
@@ -603,6 +615,7 @@ class EngineeringAgentServiceTest {
         ).execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew compileJava"
         );
 
@@ -652,7 +665,8 @@ class EngineeringAgentServiceTest {
 
         EngineeringTask task =
                 new EngineeringTask(
-                        "https://github.com/mahboob1/engineering-bench.git",
+                        "https://github.com/test/repository.git",
+                        "main",
                         "Run the repository tests"
                 );
 
@@ -706,6 +720,7 @@ class EngineeringAgentServiceTest {
         when(toolExecutor.execute(
                 "run_command",
                 task.repository(),
+                task.revision(),
                 "./gradlew test"
         )).thenReturn(failedResult);
 
@@ -799,6 +814,7 @@ class EngineeringAgentServiceTest {
         when(toolExecutor.execute(
                 anyString(),
                 anyString(),
+                anyString(),
                 anyString()))
                 .thenReturn(
                         new SandboxResult(
@@ -826,6 +842,7 @@ class EngineeringAgentServiceTest {
         EngineeringTask task =
                 new EngineeringTask(
                         "https://github.com/test/repository.git",
+                        "main",
                         "Run the repository tests"
                 );
 
@@ -907,6 +924,7 @@ class EngineeringAgentServiceTest {
         when(toolExecutor.execute(
                 anyString(),
                 anyString(),
+                anyString(),
                 anyString()))
                 .thenReturn(
                         new SandboxResult(
@@ -933,6 +951,7 @@ class EngineeringAgentServiceTest {
         EngineeringTask task =
                 new EngineeringTask(
                         "https://github.com/test/repository.git",
+                        "main",
                         "Run the repository tests"
                 );
 
@@ -942,11 +961,13 @@ class EngineeringAgentServiceTest {
                 .execute(
                         anyString(),
                         anyString(),
+                        anyString(),
                         anyString()
                 );
 
         verify(toolExecutor)
                 .execute(
+                        anyString(),
                         anyString(),
                         anyString(),
                         eq("./gradlew compileJava")

@@ -10,4 +10,12 @@ public interface SandboxService {
             String repository,
             List<String> commands
     );
+
+    default SandboxResult execute(
+            String repository,
+            String revision,
+            List<String> commands
+    ) {
+        return execute(repository, commands);
+    }
 }

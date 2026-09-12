@@ -23,17 +23,39 @@ public class ToolExecutor {
             String command) {
 
         EngineeringTool tool =
-                tools.stream()
-                        .filter(t -> t.name().equals(toolName))
-                        .findFirst()
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "Unknown engineering tool: "
-                                                + toolName));
+                findTool(toolName);
 
         return tool.execute(
                 repository,
                 command
         );
+    }
+
+    public SandboxResult execute(
+            String toolName,
+            String repository,
+            String revision,
+            String command) {
+
+        EngineeringTool tool =
+                findTool(toolName);
+
+        return tool.execute(
+                repository,
+                revision,
+                command
+        );
+    }
+
+    private EngineeringTool findTool(
+            String toolName) {
+
+        return tools.stream()
+                .filter(t -> t.name().equals(toolName))
+                .findFirst()
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Unknown engineering tool: "
+                                        + toolName));
     }
 }
