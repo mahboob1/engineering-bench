@@ -18,11 +18,27 @@ public class WorkspaceTaskExecutionService {
 
     public String execute(String taskId) {
 
+        workspaceTaskService.markRunning(taskId);
+
         var engineeringTask =
                 workspaceTaskService.toEngineeringTask(taskId);
 
-        return engineeringAgentService.execute(
-                engineeringTask
-        );
+        try {
+
+            String result =
+                    engineeringAgentService.execute(
+                            engineeringTask
+                    );
+
+            workspaceTaskService.markCompleted(taskId);
+
+            return result;
+
+        } catch (RuntimeException e) {
+
+            workspaceTaskService.markFailed(taskId);
+
+            throw e;
+        }
     }
 }
