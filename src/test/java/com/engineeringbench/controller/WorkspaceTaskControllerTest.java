@@ -62,7 +62,9 @@ class WorkspaceTaskControllerTest {
                 .andExpect(jsonPath("$.workspaceId")
                         .value("workspace-001"))
                 .andExpect(jsonPath("$.task")
-                        .value("Add customer search by name and write tests."));
+                        .value("Add customer search by name and write tests."))
+                .andExpect(jsonPath("$.status")
+                .value("CREATED"));
 
         verify(taskService).create(any(WorkspaceTask.class));
     }
@@ -79,7 +81,9 @@ class WorkspaceTaskControllerTest {
                 .andExpect(jsonPath("$.id")
                         .value("task-001"))
                 .andExpect(jsonPath("$.workspaceId")
-                        .value("workspace-001"));
+                        .value("workspace-001"))
+                .andExpect(jsonPath("$.status")
+                .value("CREATED"));
 
         verify(taskService).findById("task-001");
     }
@@ -202,7 +206,11 @@ class WorkspaceTaskControllerTest {
                 .andExpect(jsonPath("$[1].id")
                         .value("task-002"))
                 .andExpect(jsonPath("$[1].workspaceId")
-                        .value("workspace-001"));
+                        .value("workspace-001"))
+                .andExpect(jsonPath("$[0].status")
+                        .value("CREATED"))
+                .andExpect(jsonPath("$[1].status")
+                        .value("CREATED"));
 
         verify(taskService)
                 .findByWorkspaceId("workspace-001");

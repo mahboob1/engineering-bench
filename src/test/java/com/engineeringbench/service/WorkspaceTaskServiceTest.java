@@ -1,11 +1,6 @@
 package com.engineeringbench.service;
 
-import com.engineeringbench.model.EngineeringProject;
-import com.engineeringbench.model.EngineeringTask;
-import com.engineeringbench.model.EngineeringWorkspace;
-import com.engineeringbench.model.ProjectTechnology;
-import com.engineeringbench.model.RepositoryReference;
-import com.engineeringbench.model.WorkspaceTask;
+import com.engineeringbench.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -369,6 +364,39 @@ class WorkspaceTaskServiceTest {
                         "customer-service",
                         "feature/customer-search"
                 )
+        );
+    }
+
+    @Test
+    void shouldCreateWorkspaceTaskWithCreatedStatus() {
+
+        EngineeringProjectService projectService =
+                createProjectService();
+
+        EngineeringWorkspaceService workspaceService =
+                createWorkspaceService(projectService);
+
+        WorkspaceTaskService taskService =
+                new WorkspaceTaskService(workspaceService);
+
+        createWorkspace(
+                projectService,
+                workspaceService
+        );
+
+        WorkspaceTask task =
+                new WorkspaceTask(
+                        "task-001",
+                        "workspace-001",
+                        "Add customer search."
+                );
+
+        WorkspaceTask created =
+                taskService.create(task);
+
+        assertEquals(
+                WorkspaceTaskStatus.CREATED,
+                created.status()
         );
     }
 }
