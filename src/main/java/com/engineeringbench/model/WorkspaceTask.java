@@ -7,6 +7,12 @@ public record WorkspaceTask(
         WorkspaceTaskStatus status
 ) {
 
+    public WorkspaceTask {
+        if (status == null) {
+            status = WorkspaceTaskStatus.CREATED;
+        }
+    }
+
     public WorkspaceTask(
             String id,
             String workspaceId,

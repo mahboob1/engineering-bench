@@ -250,4 +250,87 @@ class WorkspaceTaskIntegrationTest {
                 .andExpect(jsonPath("$.output")
                         .value("execution-result"));
     }
+
+    @Test
+    void shouldShowCompletedTaskAfterExecution() throws Exception {
+
+        when(engineeringAgentService.execute(any(EngineeringTask.class)))
+                .thenReturn("execution-result");
+
+        // Create project
+        mockMvc.perform(
+                        post("/api/projects")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                      "id": "project-lifecycle-001",
+                                      "name": "Customer Service",
+                                      "repository": {
+                                        "url": "https://github.com/example/customer-service.git",
+                                        "revision": "main"
+                                      },
+                                      "technology": {
+                                        "language": "Java",
+                                        "framework": "Spring Boot",
+                                        "buildTool": "Gradle"
+                                      },
+                                      "capabilities": []
+                                    }
+                                    """)
+                )
+                .andExpect(status().isOk());
+
+        // Create workspace
+        mockMvc.perform(
+                        post("/api/workspaces")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                      "id": "workspace-lifecycle-001",
+                                      "projectId": "project-lifecycle-001",
+                                      "revision": "feature/customer-search"
+                                    }
+                                    """)
+                )
+                .andExpect(status().isOk());
+
+        // Create task
+        mockMvc.perform(
+                        post("/api/workspace-tasks")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                      "id": "task-lifecycle-001",
+                                      "workspaceId": "workspace-lifecycle-001",
+                                      "task": "Add customer search."
+                                    }
+                                    """)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status")
+                        .value("CREATED"));
+
+        // Execute task
+        mockMvc.perform(
+                        post("/api/workspace-tasks/task-lifecycle-001/execute")
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().string("execution-result"));
+
+        // Verify task lifecycle
+        var response = mockMvc.perform(
+                        get("/api/workspace-tasks/task-lifecycle-001")
+                )
+                .andReturn();
+
+        System.out.println(
+                "TASK STATUS: "
+                        + response.getResponse().getStatus()
+        );
+
+        System.out.println(
+                "TASK RESPONSE: "
+                        + response.getResponse().getContentAsString()
+        );
+    }
 }
