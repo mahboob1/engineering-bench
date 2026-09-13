@@ -57,4 +57,10 @@ public class WorkspaceTaskController {
     public long count() {
         return taskService.count();
     }
+
+    @GetMapping("/workspace/{workspaceId}")
+    public List<WorkspaceTask> findByWorkspaceId(
+            @PathVariable String workspaceId) {
+        return taskService.findByWorkspaceId(workspaceId);
+    }
 }

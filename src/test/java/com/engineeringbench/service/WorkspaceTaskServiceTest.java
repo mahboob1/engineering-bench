@@ -244,6 +244,84 @@ class WorkspaceTaskServiceTest {
         );
     }
 
+    @Test
+    void shouldFindWorkspaceTasksByWorkspaceId() {
+
+        EngineeringProjectService projectService =
+                createProjectService();
+
+        EngineeringWorkspaceService workspaceService =
+                createWorkspaceService(projectService);
+
+        WorkspaceTaskService taskService =
+                new WorkspaceTaskService(workspaceService);
+
+        createWorkspace(
+                projectService,
+                workspaceService
+        );
+
+        // Create a second workspace for the task
+        EngineeringProject secondProject =
+                new EngineeringProject(
+                        "order-service",
+                        "Order Service",
+                        new RepositoryReference(
+                                "https://github.com/example/order-service.git",
+                                "main"
+                        ),
+                        new ProjectTechnology(
+                                "Java",
+                                "Spring Boot",
+                                "Gradle"
+                        ),
+                        List.of()
+                );
+
+        projectService.create(secondProject);
+
+        workspaceService.create(
+                new EngineeringWorkspace(
+                        "workspace-002",
+                        "order-service",
+                        "feature/authentication"
+                )
+        );
+
+        WorkspaceTask firstTask =
+                new WorkspaceTask(
+                        "task-001",
+                        "workspace-001",
+                        "Add customer search."
+                );
+
+        WorkspaceTask secondTask =
+                new WorkspaceTask(
+                        "task-002",
+                        "workspace-001",
+                        "Add pagination."
+                );
+
+        WorkspaceTask otherTask =
+                new WorkspaceTask(
+                        "task-003",
+                        "workspace-002",
+                        "Add authentication."
+                );
+
+        taskService.create(firstTask);
+        taskService.create(secondTask);
+        taskService.create(otherTask);
+
+        List<WorkspaceTask> tasks =
+                taskService.findByWorkspaceId("workspace-001");
+
+        assertEquals(2, tasks.size());
+        assertTrue(tasks.contains(firstTask));
+        assertTrue(tasks.contains(secondTask));
+        assertFalse(tasks.contains(otherTask));
+    }
+
     private EngineeringProjectService createProjectService() {
         EngineeringProjectRepository repository =
                 new InMemoryEngineeringProjectRepository();

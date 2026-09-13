@@ -175,4 +175,36 @@ class WorkspaceTaskControllerTest {
 
         verify(taskService).count();
     }
+
+    @Test
+    void shouldFindWorkspaceTasksByWorkspaceId() throws Exception {
+
+        WorkspaceTask secondTask =
+                new WorkspaceTask(
+                        "task-002",
+                        "workspace-001",
+                        "Add pagination."
+                );
+
+        when(taskService.findByWorkspaceId("workspace-001"))
+                .thenReturn(List.of(task, secondTask));
+
+        mockMvc.perform(
+                        get("/api/workspace-tasks/workspace/workspace-001")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()")
+                        .value(2))
+                .andExpect(jsonPath("$[0].id")
+                        .value("task-001"))
+                .andExpect(jsonPath("$[0].workspaceId")
+                        .value("workspace-001"))
+                .andExpect(jsonPath("$[1].id")
+                        .value("task-002"))
+                .andExpect(jsonPath("$[1].workspaceId")
+                        .value("workspace-001"));
+
+        verify(taskService)
+                .findByWorkspaceId("workspace-001");
+    }
 }

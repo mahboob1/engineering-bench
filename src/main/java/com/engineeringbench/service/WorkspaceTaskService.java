@@ -84,4 +84,14 @@ public class WorkspaceTaskService {
                 workspaceTask
         );
     }
+
+    public List<WorkspaceTask> findByWorkspaceId(
+            String workspaceId) {
+
+        return tasks.values()
+                .stream()
+                .filter(task ->
+                        task.workspaceId().equals(workspaceId))
+                .toList();
+    }
 }
