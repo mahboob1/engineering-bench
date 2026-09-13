@@ -2,6 +2,7 @@ package com.engineeringbench.service;
 
 import com.engineeringbench.model.EngineeringTask;
 import com.engineeringbench.model.WorkspaceTask;
+import com.engineeringbench.model.WorkspaceTaskStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -93,5 +94,56 @@ public class WorkspaceTaskService {
                 .filter(task ->
                         task.workspaceId().equals(workspaceId))
                 .toList();
+    }
+
+    public WorkspaceTask markRunning(String id) {
+
+        WorkspaceTask task = findById(id);
+
+        WorkspaceTask updated =
+                new WorkspaceTask(
+                        task.id(),
+                        task.workspaceId(),
+                        task.task(),
+                        WorkspaceTaskStatus.RUNNING
+                );
+
+        tasks.put(id, updated);
+
+        return updated;
+    }
+
+    public WorkspaceTask markCompleted(String id) {
+
+        WorkspaceTask task = findById(id);
+
+        WorkspaceTask updated =
+                new WorkspaceTask(
+                        task.id(),
+                        task.workspaceId(),
+                        task.task(),
+                        WorkspaceTaskStatus.COMPLETED
+                );
+
+        tasks.put(id, updated);
+
+        return updated;
+    }
+
+    public WorkspaceTask markFailed(String id) {
+
+        WorkspaceTask task = findById(id);
+
+        WorkspaceTask updated =
+                new WorkspaceTask(
+                        task.id(),
+                        task.workspaceId(),
+                        task.task(),
+                        WorkspaceTaskStatus.FAILED
+                );
+
+        tasks.put(id, updated);
+
+        return updated;
     }
 }

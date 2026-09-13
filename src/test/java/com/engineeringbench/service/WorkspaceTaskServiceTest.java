@@ -398,5 +398,113 @@ class WorkspaceTaskServiceTest {
                 WorkspaceTaskStatus.CREATED,
                 created.status()
         );
+    }@Test
+    void shouldMarkWorkspaceTaskAsRunning() {
+
+        EngineeringProjectService projectService =
+                createProjectService();
+
+        EngineeringWorkspaceService workspaceService =
+                createWorkspaceService(projectService);
+
+        WorkspaceTaskService taskService =
+                new WorkspaceTaskService(workspaceService);
+
+        createWorkspace(
+                projectService,
+                workspaceService
+        );
+
+        WorkspaceTask task =
+                new WorkspaceTask(
+                        "task-001",
+                        "workspace-001",
+                        "Add customer search."
+                );
+
+        taskService.create(task);
+
+        WorkspaceTask runningTask =
+                taskService.markRunning("task-001");
+
+        assertEquals(
+                WorkspaceTaskStatus.RUNNING,
+                runningTask.status()
+        );
     }
+
+    @Test
+    void shouldMarkWorkspaceTaskAsCompleted() {
+
+        EngineeringProjectService projectService =
+                createProjectService();
+
+        EngineeringWorkspaceService workspaceService =
+                createWorkspaceService(projectService);
+
+        WorkspaceTaskService taskService =
+                new WorkspaceTaskService(workspaceService);
+
+        createWorkspace(
+                projectService,
+                workspaceService
+        );
+
+        WorkspaceTask task =
+                new WorkspaceTask(
+                        "task-001",
+                        "workspace-001",
+                        "Add customer search."
+                );
+
+        taskService.create(task);
+
+        taskService.markRunning("task-001");
+
+        WorkspaceTask completedTask =
+                taskService.markCompleted("task-001");
+
+        assertEquals(
+                WorkspaceTaskStatus.COMPLETED,
+                completedTask.status()
+        );
+    }
+
+    @Test
+    void shouldMarkWorkspaceTaskAsFailed() {
+
+        EngineeringProjectService projectService =
+                createProjectService();
+
+        EngineeringWorkspaceService workspaceService =
+                createWorkspaceService(projectService);
+
+        WorkspaceTaskService taskService =
+                new WorkspaceTaskService(workspaceService);
+
+        createWorkspace(
+                projectService,
+                workspaceService
+        );
+
+        WorkspaceTask task =
+                new WorkspaceTask(
+                        "task-001",
+                        "workspace-001",
+                        "Add customer search."
+                );
+
+        taskService.create(task);
+
+        taskService.markRunning("task-001");
+
+        WorkspaceTask failedTask =
+                taskService.markFailed("task-001");
+
+        assertEquals(
+                WorkspaceTaskStatus.FAILED,
+                failedTask.status()
+        );
+    }
+
 }
