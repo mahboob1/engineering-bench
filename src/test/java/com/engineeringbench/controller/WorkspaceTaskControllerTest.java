@@ -3,6 +3,7 @@ package com.engineeringbench.controller;
 import com.engineeringbench.model.EngineeringTask;
 import com.engineeringbench.model.WorkspaceTask;
 import com.engineeringbench.service.WorkspaceTaskExecutionService;
+import com.engineeringbench.service.WorkspaceTaskResultService;
 import com.engineeringbench.service.WorkspaceTaskService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ class WorkspaceTaskControllerTest {
 
     @MockitoBean
     private WorkspaceTaskExecutionService executionService;
+
+    @MockitoBean
+    private WorkspaceTaskResultService resultService;
 
     private WorkspaceTask task;
 
