@@ -1,12 +1,17 @@
 package com.engineeringbench.controller;
 
+import com.engineeringbench.model.EngineeringTask;
+import com.engineeringbench.service.EngineeringAgentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -17,6 +22,9 @@ class WorkspaceTaskIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private EngineeringAgentService engineeringAgentService;
 
     @Test
     void shouldCreateProjectWorkspaceAndTaskThroughRealApplication() throws Exception {
@@ -101,5 +109,70 @@ class WorkspaceTaskIntegrationTest {
                         .value(
                                 "Add customer search by name and write tests."
                         ));
+    }
+
+    @Test
+    void shouldExecuteWorkspaceTaskThroughHttp() throws Exception {
+
+        when(engineeringAgentService.execute(any(EngineeringTask.class)))
+                .thenReturn("execution-result");
+
+        // 1. Create project
+        mockMvc.perform(
+                        post("/api/projects")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                      "id": "project-execution-001",
+                                      "name": "Customer Service",
+                                      "repository": {
+                                        "url": "https://github.com/example/customer-service.git",
+                                        "revision": "main"
+                                      },
+                                      "technology": {
+                                        "language": "Java",
+                                        "framework": "Spring Boot",
+                                        "buildTool": "Gradle"
+                                      },
+                                      "capabilities": []
+                                    }
+                                    """)
+                )
+                .andExpect(status().isOk());
+
+        // 2. Create workspace
+        mockMvc.perform(
+                        post("/api/workspaces")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                      "id": "workspace-execution-001",
+                                      "projectId": "project-execution-001",
+                                      "revision": "feature/customer-search"
+                                    }
+                                    """)
+                )
+                .andExpect(status().isOk());
+
+        // 3. Create workspace task
+        mockMvc.perform(
+                        post("/api/workspace-tasks")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                      "id": "task-001",
+                                      "workspaceId": "workspace-execution-001",
+                                      "task": "Add customer search by name and write tests."
+                                    }
+                                    """)
+                )
+                .andExpect(status().isOk());
+
+        // 4. Execute task through HTTP
+        mockMvc.perform(
+                        post("/api/workspace-tasks/task-001/execute")
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().string("execution-result"));
     }
 }

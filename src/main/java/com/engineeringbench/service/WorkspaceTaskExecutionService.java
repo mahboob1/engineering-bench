@@ -1,5 +1,6 @@
 package com.engineeringbench.service;
 
+import com.engineeringbench.model.WorkspaceTaskResult;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -7,13 +8,16 @@ public class WorkspaceTaskExecutionService {
 
     private final WorkspaceTaskService workspaceTaskService;
     private final EngineeringAgentService engineeringAgentService;
+    private final WorkspaceTaskResultService resultService;
 
     public WorkspaceTaskExecutionService(
             WorkspaceTaskService workspaceTaskService,
-            EngineeringAgentService engineeringAgentService) {
+            EngineeringAgentService engineeringAgentService,
+            WorkspaceTaskResultService resultService) {
 
         this.workspaceTaskService = workspaceTaskService;
         this.engineeringAgentService = engineeringAgentService;
+        this.resultService = resultService;
     }
 
     public String execute(String taskId) {
@@ -29,7 +33,12 @@ public class WorkspaceTaskExecutionService {
                     engineeringAgentService.execute(
                             engineeringTask
                     );
-
+            resultService.save(
+                    new WorkspaceTaskResult(
+                            taskId,
+                            result
+                    )
+            );
             workspaceTaskService.markCompleted(taskId);
 
             return result;
