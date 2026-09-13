@@ -2,6 +2,7 @@ package com.engineeringbench.controller;
 
 import com.engineeringbench.model.EngineeringTask;
 import com.engineeringbench.model.WorkspaceTask;
+import com.engineeringbench.service.WorkspaceTaskExecutionService;
 import com.engineeringbench.service.WorkspaceTaskService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ class WorkspaceTaskControllerTest {
 
     @MockitoBean
     private WorkspaceTaskService taskService;
+
+    @MockitoBean
+    private WorkspaceTaskExecutionService executionService;
 
     private WorkspaceTask task;
 
@@ -214,5 +218,21 @@ class WorkspaceTaskControllerTest {
 
         verify(taskService)
                 .findByWorkspaceId("workspace-001");
+    }
+
+    @Test
+    void shouldExecuteWorkspaceTask() throws Exception {
+
+        when(executionService.execute("task-001"))
+                .thenReturn("execution-result");
+
+        mockMvc.perform(
+                        post("/api/workspace-tasks/task-001/execute")
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().string("execution-result"));
+
+        verify(executionService)
+                .execute("task-001");
     }
 }

@@ -2,6 +2,7 @@ package com.engineeringbench.controller;
 
 import com.engineeringbench.model.EngineeringTask;
 import com.engineeringbench.model.WorkspaceTask;
+import com.engineeringbench.service.WorkspaceTaskExecutionService;
 import com.engineeringbench.service.WorkspaceTaskService;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,10 +13,13 @@ import java.util.List;
 public class WorkspaceTaskController {
 
     private final WorkspaceTaskService taskService;
+    private final WorkspaceTaskExecutionService executionService;
 
     public WorkspaceTaskController(
-            WorkspaceTaskService taskService) {
+            WorkspaceTaskService taskService,
+            WorkspaceTaskExecutionService executionService) {
         this.taskService = taskService;
+        this.executionService = executionService;
     }
 
     @PostMapping
@@ -62,5 +66,12 @@ public class WorkspaceTaskController {
     public List<WorkspaceTask> findByWorkspaceId(
             @PathVariable String workspaceId) {
         return taskService.findByWorkspaceId(workspaceId);
+    }
+
+    @PostMapping("/{id}/execute")
+    public String execute(
+            @PathVariable String id) {
+
+        return executionService.execute(id);
     }
 }
