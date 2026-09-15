@@ -31,7 +31,8 @@ public class WorkspaceTaskExecutionService {
 
             String result =
                     engineeringAgentService.execute(
-                            engineeringTask
+                            engineeringTask,
+                            taskId
                     );
             resultService.save(
                     new WorkspaceTaskResult(

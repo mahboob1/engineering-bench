@@ -31,6 +31,18 @@ public class EngineeringWorkspaceService {
         );
     }
 
+    public String resolveCollection(String workspaceId) {
+
+        EngineeringWorkspace workspace =
+                findById(workspaceId);
+
+        EngineeringProject project =
+                projectService.findById(
+                        workspace.projectId()
+                );
+
+        return project.collection();
+    }
 
     public EngineeringWorkspace create(
             EngineeringWorkspace workspace) {

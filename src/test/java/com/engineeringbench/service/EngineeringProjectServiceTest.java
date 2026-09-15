@@ -29,6 +29,7 @@ class EngineeringProjectServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        "customer_docs",
                         new ProjectTechnology(
                                 "Java",
                                 "Spring Boot",
@@ -68,6 +69,7 @@ class EngineeringProjectServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        "customer_docs",
                         new ProjectTechnology(
                                 "Java",
                                 "Spring Boot",
@@ -101,6 +103,7 @@ class EngineeringProjectServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        "customer_docs",
                         new ProjectTechnology(
                                 "Java",
                                 "Spring Boot",

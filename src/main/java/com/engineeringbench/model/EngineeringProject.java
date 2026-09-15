@@ -6,6 +6,7 @@ public record EngineeringProject(
         String id,
         String name,
         RepositoryReference repository,
+        String collection,
         ProjectTechnology technology,
         List<ProjectCapability> capabilities
 ) {

@@ -1,6 +1,7 @@
 package com.engineeringbench.service;
 
 import com.engineeringbench.model.SearchResult;
+import com.engineeringbench.model.WorkspaceTask;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,22 +10,31 @@ import java.util.List;
 public class RepositoryContextService {
 
     private final SemanticSearchService semanticSearchService;
+    private final EngineeringWorkspaceService workspaceService;
+    private final WorkspaceTaskService workspaceTaskService;
 
     public RepositoryContextService(
-            SemanticSearchService semanticSearchService) {
-
-        this.semanticSearchService =
-                semanticSearchService;
+            SemanticSearchService semanticSearchService,
+            EngineeringWorkspaceService workspaceService,
+            WorkspaceTaskService workspaceTaskService) {
+        this.semanticSearchService = semanticSearchService;
+        this.workspaceService = workspaceService;
+        this.workspaceTaskService = workspaceTaskService;
     }
 
     public String retrieve(
             String repository,
-            String question) {
-
+            String taskId) {
+        WorkspaceTask workspaceTask =
+                workspaceTaskService.findById(taskId);
+        String collection =
+                workspaceService.resolveCollection(
+                        workspaceTask.workspaceId()
+                );
         List<SearchResult> results =
                 semanticSearchService.searchForAnalysis(
-                        "engineering_docs",
-                        question,
+                        collection,
+                        taskId,
                         repository
                 );
 

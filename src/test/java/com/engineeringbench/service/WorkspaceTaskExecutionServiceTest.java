@@ -45,6 +45,10 @@ class WorkspaceTaskExecutionServiceTest {
 
         when(agentService.execute(engineeringTask))
                 .thenReturn("execution-result");
+        when(agentService.execute(
+                engineeringTask,
+                "task-001"
+        )).thenReturn("execution-result");
 
         String result =
                 executionService.execute("task-001");
@@ -57,8 +61,14 @@ class WorkspaceTaskExecutionServiceTest {
         verify(workspaceTaskService)
                 .toEngineeringTask("task-001");
 
+//        verify(agentService)
+//                .execute(engineeringTask);
         verify(agentService)
-                .execute(engineeringTask);
+                .execute(
+                        engineeringTask,
+                        "task-001"
+                );
+
     }
 
     @Test
@@ -92,6 +102,10 @@ class WorkspaceTaskExecutionServiceTest {
 
         when(agentService.execute(engineeringTask))
                 .thenReturn("execution-result");
+        when(agentService.execute(
+                engineeringTask,
+                "task-001"
+        )).thenReturn("execution-result");
 
         String result =
                 executionService.execute("task-001");
@@ -137,8 +151,12 @@ class WorkspaceTaskExecutionServiceTest {
         when(workspaceTaskService.toEngineeringTask("task-001"))
                 .thenReturn(engineeringTask);
 
-        when(agentService.execute(engineeringTask))
-                .thenThrow(new RuntimeException("Execution failed"));
+        when(agentService.execute(
+                engineeringTask,
+                "task-001"
+        )).thenThrow(
+                new RuntimeException("Execution failed")
+        );
 
         assertThrows(
                 RuntimeException.class,
@@ -183,6 +201,10 @@ class WorkspaceTaskExecutionServiceTest {
 
         when(agentService.execute(engineeringTask))
                 .thenReturn("execution-result");
+        when(agentService.execute(
+                engineeringTask,
+                "task-001"
+        )).thenReturn("execution-result");
 
         executionService.execute("task-001");
 

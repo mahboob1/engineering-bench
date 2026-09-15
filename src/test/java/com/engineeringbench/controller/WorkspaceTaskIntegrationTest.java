@@ -11,6 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -117,6 +118,11 @@ class WorkspaceTaskIntegrationTest {
         when(engineeringAgentService.execute(any(EngineeringTask.class)))
                 .thenReturn("execution-result");
 
+        when(engineeringAgentService.execute(
+                any(EngineeringTask.class),
+                anyString()
+        )).thenReturn("execution-result");
+
         // 1. Create project
         mockMvc.perform(
                         post("/api/projects")
@@ -181,6 +187,11 @@ class WorkspaceTaskIntegrationTest {
 
         when(engineeringAgentService.execute(any(EngineeringTask.class)))
                 .thenReturn("execution-result");
+
+        when(engineeringAgentService.execute(
+                any(EngineeringTask.class),
+                anyString()
+        )).thenReturn("execution-result");
 
         // Create project
         mockMvc.perform(
@@ -256,6 +267,11 @@ class WorkspaceTaskIntegrationTest {
 
         when(engineeringAgentService.execute(any(EngineeringTask.class)))
                 .thenReturn("execution-result");
+
+        when(engineeringAgentService.execute(
+                any(EngineeringTask.class),
+                anyString()
+        )).thenReturn("execution-result");
 
         // Create project
         mockMvc.perform(

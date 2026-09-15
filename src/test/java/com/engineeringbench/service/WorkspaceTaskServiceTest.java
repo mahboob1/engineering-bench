@@ -265,6 +265,7 @@ class WorkspaceTaskServiceTest {
                                 "https://github.com/example/order-service.git",
                                 "main"
                         ),
+                        "order_docs",
                         new ProjectTechnology(
                                 "Java",
                                 "Spring Boot",
@@ -348,6 +349,7 @@ class WorkspaceTaskServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        "customer_docs",
                         new ProjectTechnology(
                                 "Java",
                                 "Spring Boot",
