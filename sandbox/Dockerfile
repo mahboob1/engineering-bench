@@ -5,6 +5,8 @@ RUN apt-get update \
        git \
        bash \
        curl \
+       python3 \
+       openjdk-17-jdk \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --create-home --shell /bin/bash sandbox
