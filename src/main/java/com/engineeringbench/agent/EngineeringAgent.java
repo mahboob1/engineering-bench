@@ -88,10 +88,19 @@ public interface EngineeringAgent {
         - Briefly explain why the selected action and command are appropriate.
 
         Rules:
+            
+        1. If the engineering task requires modifying repository files:
 
-        1. Use apply_patch when the engineering task explicitly requires
-           modifying repository files and the supplied repository evidence
-           identifies the appropriate file and change.
+           a. If the supplied repository evidence contains enough exact current
+              source text to construct a safe and unique patch, use apply_patch.
+
+           b. If the task identifies a relevant repository file but the supplied
+              repository evidence does not contain enough exact current source
+              text to construct a safe patch, and read_file is available, use
+              read_file and return CONTINUE.
+
+           c. Never return STOP merely because required repository information
+              is missing when an available tool can obtain that information.
 
         2. The apply_patch command must be a JSON object encoded as a string
            containing exactly:
@@ -116,11 +125,11 @@ public interface EngineeringAgent {
         7. Use read_file when the supplied repository evidence does not contain
            enough exact current source text to construct a safe unique
            apply_patch operation.
-           
+
         8. If the requested engineering task cannot yet be completed because
            required repository information is missing, but an available tool
            can obtain that information, use that tool and return CONTINUE
-           rather than STOP.   
+           rather than STOP.
 
         9. The read_file command must be a JSON object encoded as a string
            containing exactly:
