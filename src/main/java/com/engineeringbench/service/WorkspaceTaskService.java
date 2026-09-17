@@ -33,15 +33,28 @@ public class WorkspaceTaskService {
                             + task.workspaceId());
         }
 
-        if (tasks.containsKey(task.id())) {
-            throw new IllegalArgumentException(
-                    "Workspace task already exists: "
-                            + task.id());
+        String id = task.id();
+
+        if (id == null || id.isBlank()) {
+            id = "task-" + java.util.UUID.randomUUID();
         }
 
-        tasks.put(task.id(), task);
+        if (tasks.containsKey(id)) {
+            throw new IllegalArgumentException(
+                    "Workspace task already exists: "
+                            + id);
+        }
 
-        return task;
+        WorkspaceTask created =
+                new WorkspaceTask(
+                        id,
+                        task.workspaceId(),
+                        task.task()
+                );
+
+        tasks.put(id, created);
+
+        return created;
     }
 
     public WorkspaceTask findById(String id) {
