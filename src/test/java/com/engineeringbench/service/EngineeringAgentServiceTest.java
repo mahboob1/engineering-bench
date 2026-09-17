@@ -2,9 +2,12 @@ package com.engineeringbench.service;
 
 import com.engineeringbench.agent.EngineeringAgent;
 import com.engineeringbench.model.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -32,13 +35,17 @@ class EngineeringAgentServiceTest {
         DiagnosisService diagnosisService =
                 mock(DiagnosisService.class);
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         EngineeringAgentService service =
                 new EngineeringAgentService(
                         toolExecutor,
                         engineeringAgent,
                         repositoryContextService,
                         observationService,
-                        diagnosisService
+                        diagnosisService,
+                        eventService
                 );
 
         EngineeringTask task =
@@ -60,13 +67,13 @@ class EngineeringAgentServiceTest {
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew test",
+                                TextNode.valueOf("./gradlew test"),
                                 "The task requires running the repository tests."
                         ),
                         new AgentDecision(
                                 "STOP",
                                 "none",
-                                "none",
+                                TextNode.valueOf("none"),
                                 "The test command completed successfully."
                         )
                 );
@@ -198,13 +205,17 @@ class EngineeringAgentServiceTest {
         DiagnosisService diagnosisService =
                 mock(DiagnosisService.class);
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         EngineeringAgentService service =
                 new EngineeringAgentService(
                         toolExecutor,
                         engineeringAgent,
                         repositoryContextService,
                         observationService,
-                        diagnosisService
+                        diagnosisService,
+                        eventService
                 );
 
         EngineeringTask task =
@@ -226,21 +237,21 @@ class EngineeringAgentServiceTest {
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew test",
+                                TextNode.valueOf("./gradlew test"),
                                 "Run the tests to evaluate the repository."
                         ),
 
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew compileJava",
+                                TextNode.valueOf("./gradlew compileJava"),
                                 "The previous command failed, so compileJava should be attempted."
                         ),
 
                         new AgentDecision(
                                 "STOP",
                                 "none",
-                                "none",
+                                TextNode.valueOf("none"),
                                 "No further action is required."
                         )
                 );
@@ -426,13 +437,17 @@ class EngineeringAgentServiceTest {
         DiagnosisService diagnosisService =
                 mock(DiagnosisService.class);
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         EngineeringAgentService service =
                 new EngineeringAgentService(
                         toolExecutor,
                         engineeringAgent,
                         repositoryContextService,
                         observationService,
-                        diagnosisService
+                        diagnosisService,
+                        eventService
                 );
 
         EngineeringTask task =
@@ -458,7 +473,7 @@ class EngineeringAgentServiceTest {
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew test",
+                                TextNode.valueOf("./gradlew test"),
                                 "Run the repository tests."
                         ),
 
@@ -470,7 +485,7 @@ class EngineeringAgentServiceTest {
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew compileJava",
+                                TextNode.valueOf("./gradlew compileJava"),
                                 "The previous execution failed and requires further investigation."
                         ),
 
@@ -481,7 +496,7 @@ class EngineeringAgentServiceTest {
                         new AgentDecision(
                                 "STOP",
                                 "none",
-                                "none",
+                                TextNode.valueOf("none"),
                                 "No further action is required."
                         )
                 );
@@ -654,13 +669,17 @@ class EngineeringAgentServiceTest {
         DiagnosisService diagnosisService =
                 mock(DiagnosisService.class);
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         EngineeringAgentService service =
                 new EngineeringAgentService(
                         toolExecutor,
                         engineeringAgent,
                         repositoryContextService,
                         observationService,
-                        diagnosisService
+                        diagnosisService,
+                        eventService
                 );
 
         EngineeringTask task =
@@ -682,13 +701,13 @@ class EngineeringAgentServiceTest {
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew test",
+                                TextNode.valueOf("./gradlew test"),
                                 "Run the repository tests."
                         ),
                         new AgentDecision(
                                 "STOP",
                                 "none",
-                                "none",
+                                TextNode.valueOf("none"),
                                 "Stop after reviewing the failure."
                         )
                 );
@@ -790,6 +809,9 @@ class EngineeringAgentServiceTest {
         DiagnosisService diagnosisService =
                 new DiagnosisService();
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         when(repositoryContextService.retrieve(
                 anyString(),
                 anyString()))
@@ -800,13 +822,13 @@ class EngineeringAgentServiceTest {
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew test",
+                                TextNode.valueOf("./gradlew test"),
                                 "Run tests"
                         ),
                         new AgentDecision(
                                 "STOP",
                                 "none",
-                                "none",
+                                TextNode.valueOf("none"),
                                 "Stop after diagnosis"
                         )
                 );
@@ -836,7 +858,8 @@ class EngineeringAgentServiceTest {
                         agent,
                         repositoryContextService,
                         observationService,
-                        diagnosisService
+                        diagnosisService,
+                        eventService
                 );
 
         EngineeringTask task =
@@ -894,6 +917,9 @@ class EngineeringAgentServiceTest {
         DiagnosisService diagnosisService =
                 new DiagnosisService();
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         when(repositoryContextService.retrieve(
                 anyString(),
                 anyString()))
@@ -904,19 +930,19 @@ class EngineeringAgentServiceTest {
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew test",
+                                TextNode.valueOf("./gradlew test"),
                                 "Run tests"
                         ),
                         new AgentDecision(
                                 "CONTINUE",
                                 "run_command",
-                                "./gradlew compileJava",
+                                TextNode.valueOf("./gradlew compileJava"),
                                 "Re-run compilation after diagnosing the failure"
                         ),
                         new AgentDecision(
                                 "STOP",
                                 "none",
-                                "none",
+                                TextNode.valueOf("none"),
                                 "Stop"
                         )
                 );
@@ -945,7 +971,8 @@ class EngineeringAgentServiceTest {
                         agent,
                         repositoryContextService,
                         observationService,
-                        diagnosisService
+                        diagnosisService,
+                        eventService
                 );
 
         EngineeringTask task =
@@ -972,5 +999,80 @@ class EngineeringAgentServiceTest {
                         anyString(),
                         eq("./gradlew compileJava")
                 );
+    }
+
+    @Test
+    void shouldFailWhenAgentExhaustsMaximumIterations() {
+        ToolExecutor toolExecutor =
+                mock(ToolExecutor.class);
+
+        EngineeringAgent engineeringAgent =
+                mock(EngineeringAgent.class);
+
+        when(engineeringAgent.decide(anyString()))
+                .thenReturn(
+                        new AgentDecision(
+                                "CONTINUE",
+                                "run_command",
+                                TextNode.valueOf("./gradlew test"),
+                                "Continue working."
+                        )
+                );
+        RepositoryContextService repositoryContextService =
+                mock(RepositoryContextService.class);
+
+        ExecutionObservationService observationService =
+                new ExecutionObservationService();
+
+        DiagnosisService diagnosisService =
+                new DiagnosisService();
+
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
+        EngineeringAgentService service =
+                new EngineeringAgentService(
+                        toolExecutor,
+                        engineeringAgent,
+                        repositoryContextService,
+                        observationService,
+                        diagnosisService,
+                        eventService
+                );
+
+        EngineeringTask task =
+                new EngineeringTask(
+                        "https://github.com/test/repository.git",
+                        "main",
+                        "Run the repository tests"
+                );
+
+        when(toolExecutor.execute(
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString()
+        )).thenReturn(
+                new SandboxResult(
+                        1,
+                        "",
+                        "Command failed.",
+                        "",
+                        ""
+                )
+        );
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> service.execute(
+                        task,
+                        "task-test-001"
+                )
+        );
+
+        verify(
+                engineeringAgent,
+                times(5)
+        ).decide(anyString());
     }
 }

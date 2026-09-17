@@ -26,11 +26,15 @@ class WorkspaceTaskExecutionServiceTest {
         WorkspaceTaskResultService resultService =
                 mock(WorkspaceTaskResultService.class);
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         WorkspaceTaskExecutionService executionService =
                 new WorkspaceTaskExecutionService(
                         workspaceTaskService,
                         agentService,
-                        resultService
+                        resultService,
+                        eventService
                 );
 
         EngineeringTask engineeringTask =
@@ -83,11 +87,15 @@ class WorkspaceTaskExecutionServiceTest {
         WorkspaceTaskResultService resultService =
                 mock(WorkspaceTaskResultService.class);
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         WorkspaceTaskExecutionService executionService =
                 new WorkspaceTaskExecutionService(
                         workspaceTaskService,
                         agentService,
-                        resultService
+                        resultService,
+                        eventService
                 );
 
         EngineeringTask engineeringTask =
@@ -134,11 +142,15 @@ class WorkspaceTaskExecutionServiceTest {
         WorkspaceTaskResultService resultService =
                 mock(WorkspaceTaskResultService.class);
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         WorkspaceTaskExecutionService executionService =
                 new WorkspaceTaskExecutionService(
                         workspaceTaskService,
                         agentService,
-                        resultService
+                        resultService,
+                        eventService
                 );
 
         EngineeringTask engineeringTask =
@@ -182,11 +194,15 @@ class WorkspaceTaskExecutionServiceTest {
         WorkspaceTaskResultService resultService =
                 mock(WorkspaceTaskResultService.class);
 
+        ExecutionEventService eventService =
+                mock(ExecutionEventService.class);
+
         WorkspaceTaskExecutionService executionService =
                 new WorkspaceTaskExecutionService(
                         workspaceTaskService,
                         agentService,
-                        resultService
+                        resultService,
+                        eventService
                 );
 
         EngineeringTask engineeringTask =

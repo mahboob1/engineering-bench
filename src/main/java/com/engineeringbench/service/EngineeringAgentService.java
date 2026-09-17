@@ -12,13 +12,15 @@ public class EngineeringAgentService {
     private final RepositoryContextService repositoryContextService;
     private final ExecutionObservationService observationService;
     private final DiagnosisService diagnosisService;
+    private final ExecutionEventService eventService;
 
     public EngineeringAgentService(
             ToolExecutor toolExecutor,
             EngineeringAgent engineeringAgent,
             RepositoryContextService repositoryContextService,
             ExecutionObservationService observationService,
-            DiagnosisService diagnosisService) {
+            DiagnosisService diagnosisService,
+            ExecutionEventService eventService) {
 
         this.toolExecutor = toolExecutor;
         this.engineeringAgent = engineeringAgent;
@@ -27,6 +29,7 @@ public class EngineeringAgentService {
         this.observationService =
                 observationService;
         this.diagnosisService = diagnosisService;
+        this.eventService = eventService;
     }
 
     public String execute(EngineeringTask task) {
@@ -135,13 +138,18 @@ public class EngineeringAgentService {
 
             /*
              * Execute the selected engineering tool.
+             *
              */
+            String command =
+                    decision.command().isTextual()
+                            ? decision.command().asText()
+                            : decision.command().toString();
             SandboxResult result =
                     toolExecutor.execute(
                             decision.toolName(),
                             task.repository(),
                             task.revision(),
-                            decision.command()
+                            command
                     );
 
             /*
@@ -290,9 +298,7 @@ public class EngineeringAgentService {
 
         int maxIterations = 5;
 
-        for (int iteration = 1;
-             iteration <= maxIterations;
-             iteration++) {
+        for (int iteration = 1; iteration <= maxIterations; iteration++) {
 
             String agentInput = """
                     Engineering Task:
@@ -313,6 +319,17 @@ public class EngineeringAgentService {
 
             AgentDecision decision =
                     engineeringAgent.decide(agentInput);
+
+            eventService.add(
+                    workspaceTaskId,
+                    iteration,
+                    "AGENT_DECISION",
+                    "Agent selected "
+                            + decision.toolName()
+                            + " with action "
+                            + decision.action()
+                            + "."
+            );
 
             response.append("""
                     
@@ -343,7 +360,7 @@ public class EngineeringAgentService {
                         Agent decided that no further action is required.
                         """);
 
-                break;
+                return response.toString();
             }
 
             /*
@@ -361,16 +378,39 @@ public class EngineeringAgentService {
                 break;
             }
 
+            eventService.add(
+                    workspaceTaskId,
+                    iteration,
+                    "TOOL_STARTED",
+                    "Executing tool "
+                            + decision.toolName()
+                            + "."
+            );
+
             /*
              * Execute the selected engineering tool.
              */
+            String command =
+                    decision.command().isTextual()
+                            ? decision.command().asText()
+                            : decision.command().toString();
             SandboxResult result =
                     toolExecutor.execute(
                             decision.toolName(),
                             task.repository(),
                             task.revision(),
-                            decision.command()
+                            command
                     );
+
+            eventService.add(
+                    workspaceTaskId,
+                    iteration,
+                    "TOOL_COMPLETED",
+                    decision.toolName()
+                            + " completed with exit code "
+                            + result.exitCode()
+                            + "."
+            );
 
             /*
              * Convert raw execution output into structured
@@ -380,6 +420,13 @@ public class EngineeringAgentService {
                     observationService.observe(result);
             Diagnosis diagnosis =
                     diagnosisService.diagnose(result);
+
+            eventService.add(
+                    workspaceTaskId,
+                    iteration,
+                    "DIAGNOSIS",
+                    diagnosis.summary()
+            );
 
             response.append("""
                     Tool Execution #%d
@@ -482,6 +529,12 @@ public class EngineeringAgentService {
             ));
         }
 
-        return response.toString();
+        /*
+         * Reaching this point means the agent did NOT
+         * successfully complete the task.
+         */
+        throw new IllegalStateException(
+                "Agent reached maximum iterations without completing the task."
+        );
     }
 }
