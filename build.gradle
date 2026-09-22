@@ -49,6 +49,7 @@ dependencies {
     implementation 'software.amazon.awssdk:ecs'
     implementation 'software.amazon.awssdk:cloudwatchlogs'
     implementation 'software.amazon.awssdk:signin'
+    implementation 'software.amazon.awssdk:ssm'
 }
 
 tasks.named('test') {
