@@ -38,10 +38,14 @@ class WorkspaceTaskIntegrationTest {
                                         {
                                           "id": "project-integration-001",
                                           "name": "Customer Service",
-                                          "repository": {
-                                            "url": "https://github.com/example/customer-service.git",
-                                            "revision": "main"
-                                          },
+                                          "sourceRepository": {
+                                              "url": "https://github.com/example/customer-service.git",
+                                              "revision": "main"
+                                           },
+                                           "workingRepository": {
+                                              "url": "https://github.com/example/engineering-bench-customer-service.git",
+                                              "revision": "main"
+                                            },
                                           "technology": {
                                             "language": "Java",
                                             "framework": "Spring Boot",
@@ -131,8 +135,12 @@ class WorkspaceTaskIntegrationTest {
                                     {
                                       "id": "project-execution-001",
                                       "name": "Customer Service",
-                                      "repository": {
+                                      "sourceRepository": {
                                         "url": "https://github.com/example/customer-service.git",
+                                        "revision": "main"
+                                      },
+                                      "workingRepository": {
+                                        "url": "https://github.com/example/engineering-bench-customer-service.git",
                                         "revision": "main"
                                       },
                                       "technology": {
@@ -201,10 +209,14 @@ class WorkspaceTaskIntegrationTest {
                                     {
                                       "id": "project-result-001",
                                       "name": "Customer Service",
-                                      "repository": {
-                                        "url": "https://github.com/example/customer-service.git",
-                                        "revision": "main"
-                                      },
+                                      "sourceRepository": {
+                                          "url": "https://github.com/example/customer-service.git",
+                                          "revision": "main"
+                                        },
+                                        "workingRepository": {
+                                          "url": "https://github.com/example/engineering-bench-customer-service.git",
+                                          "revision": "main"
+                                        },
                                       "technology": {
                                         "language": "Java",
                                         "framework": "Spring Boot",
@@ -281,10 +293,14 @@ class WorkspaceTaskIntegrationTest {
                                     {
                                       "id": "project-lifecycle-001",
                                       "name": "Customer Service",
-                                      "repository": {
-                                        "url": "https://github.com/example/customer-service.git",
-                                        "revision": "main"
-                                      },
+                                      "sourceRepository": {
+                                          "url": "https://github.com/example/customer-service.git",
+                                          "revision": "main"
+                                        },
+                                        "workingRepository": {
+                                          "url": "https://github.com/example/engineering-bench-customer-service.git",
+                                          "revision": "main"
+                                        },
                                       "technology": {
                                         "language": "Java",
                                         "framework": "Spring Boot",

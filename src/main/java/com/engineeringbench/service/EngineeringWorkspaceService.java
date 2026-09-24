@@ -98,7 +98,7 @@ public class EngineeringWorkspaceService {
         EngineeringProject project =
                 projectService.findById(workspace.projectId());
 
-        return project.repository();
+        return project.workingRepository();
     }
 
     public RepositoryReference resolveRepository(
@@ -111,7 +111,7 @@ public class EngineeringWorkspaceService {
                 projectService.findById(workspace.projectId());
 
         return new RepositoryReference(
-                project.repository().url(),
+                project.workingRepository().url(),
                 workspace.revision()
         );
     }

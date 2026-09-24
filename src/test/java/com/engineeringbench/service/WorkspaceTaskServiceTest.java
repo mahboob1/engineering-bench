@@ -124,7 +124,7 @@ class WorkspaceTaskServiceTest {
                 taskService.toEngineeringTask("task-001");
 
         assertEquals(
-                "https://github.com/example/customer-service.git",
+                "https://github.com/example/engineering-bench-customer-service.git",
                 engineeringTask.repository()
         );
 
@@ -265,6 +265,10 @@ class WorkspaceTaskServiceTest {
                                 "https://github.com/example/order-service.git",
                                 "main"
                         ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
+                                "main"
+                        ),
                         "order_docs",
                         new ProjectTechnology(
                                 "Java",
@@ -347,6 +351,10 @@ class WorkspaceTaskServiceTest {
                         "Customer Service",
                         new RepositoryReference(
                                 "https://github.com/example/customer-service.git",
+                                "main"
+                        ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
                                 "main"
                         ),
                         "customer_docs",

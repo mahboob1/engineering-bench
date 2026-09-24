@@ -3,6 +3,7 @@ package com.engineeringbench.tool;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.engineeringbench.model.SandboxResult;
+import com.engineeringbench.model.SandboxRuntime;
 import com.engineeringbench.service.SandboxService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -83,6 +84,55 @@ public class ReadFileTool implements EngineeringTool {
                     repository,
                     revision,
                     List.of(script)
+            );
+
+        } catch (Exception e) {
+
+            throw new IllegalArgumentException(
+                    "Invalid read_file command.",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public SandboxResult execute(
+            SandboxRuntime runtime,
+            String command) {
+
+        try {
+
+            JsonNode request =
+                    objectMapper.readTree(command);
+
+            String file =
+                    request.get("file").asText();
+
+            validatePath(file);
+
+            String encodedFile =
+                    Base64.getEncoder()
+                            .encodeToString(
+                                    file.getBytes(
+                                            StandardCharsets.UTF_8
+                                    )
+                            );
+
+            String script = """
+                    set -e
+
+                    FILE=$(echo "%s" | base64 -d)
+
+                    echo "Reading file: $FILE"
+
+                    test -f "$FILE"
+
+                    cat -- "$FILE"
+                    """.formatted(encodedFile);
+
+            return sandboxService.execute(
+                    runtime,
+                    script
             );
 
         } catch (Exception e) {

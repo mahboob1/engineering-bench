@@ -24,5 +24,6 @@ app:
   openai-key: ${OPENAI_API_KEY}
   qdrant-host: ${QDRANT_HOST:qdrant}
   qdrant-port: ${QDRANT_PORT:6334}
+  github-token: ${GITHUB_TOKEN}
   cors:
     allowed-origin: ${CORS_ALLOWED_ORIGIN:http://localhost:3000}

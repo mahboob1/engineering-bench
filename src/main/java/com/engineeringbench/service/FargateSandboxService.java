@@ -12,6 +12,8 @@ import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.*;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +27,7 @@ public class FargateSandboxService implements SandboxService {
             "engineering-bench";
 
     private static final String TASK_DEFINITION =
-            "engineering-bench-sandbox:2";
+            "engineering-bench-sandbox:3";
 
     private static final String CONTAINER_NAME =
             "engineering-bench-sandbox";
@@ -262,6 +264,75 @@ public class FargateSandboxService implements SandboxService {
         );
     }
 
+    // ============================================================
+// Working repository initialization
+// ============================================================
+
+    public SandboxResult initializeWorkingRepository(
+            String sourceRepository,
+            String workingRepository) {
+
+        if (sourceRepository == null
+                || sourceRepository.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Source repository is required."
+            );
+        }
+
+        if (workingRepository == null
+                || workingRepository.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Working repository is required."
+            );
+        }
+
+        String script = """
+            set -e
+
+            echo "Initializing working repository..."
+
+            rm -rf /workspace/repository
+
+            echo "Cloning source repository..."
+
+            git clone %s /workspace/repository
+
+            cd /workspace/repository
+
+            echo "Source repository cloned successfully."
+
+            git remote remove origin
+
+            git remote add origin %s
+
+            cat > /tmp/git-askpass.sh <<'EOF'
+            #!/bin/sh
+            echo "$GITHUB_TOKEN"
+            EOF
+
+            chmod 700 /tmp/git-askpass.sh
+
+            export GIT_ASKPASS=/tmp/git-askpass.sh
+            export GIT_TERMINAL_PROMPT=0
+
+            echo "Pushing repository to working repository..."
+
+            git push --all origin
+            git push --tags origin
+
+            rm -f /tmp/git-askpass.sh
+
+            echo "Working repository initialized successfully."
+            """.formatted(
+                sourceRepository,
+                workingRepository
+        );
+
+        return runOneShotTask(script);
+    }
+
     @Override
     public SandboxResult execute(SandboxRuntime runtime, String command) {
 
@@ -273,16 +344,21 @@ public class FargateSandboxService implements SandboxService {
             throw new IllegalArgumentException("Sandbox command is required.");
         }
 
+        String encodedCommand =
+                Base64.getEncoder()
+                        .encodeToString(
+                                command.getBytes(StandardCharsets.UTF_8)
+                        );
+
         String wrappedCommand =
                 "/bin/sh -c " +
                         "\"cd /workspace/repository && " +
-                        "{ " +
-                        command +
-                        "; " +
+                        "printf '%s' '" +
+                        encodedCommand +
+                        "' | base64 -d | /bin/sh; " +
                         "rc=\\$?; " +
                         "printf '\\\\n__ENGINEERING_BENCH_EXIT_CODE__=%s\\\\n' \\\"\\$rc\\\"; " +
-                        "exit \\$rc; " +
-                        "}\"";
+                        "exit \\$rc\"";
 
         ExecuteCommandRequest request =
                 ExecuteCommandRequest.builder()

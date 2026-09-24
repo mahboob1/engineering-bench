@@ -9,6 +9,8 @@ TASK_DEFINITION_FAMILY="engineering-bench-sandbox"
 
 TASK_ROLE_NAME="engineering-bench-sandbox-task-role"
 
+GITHUB_SECRET_NAME="engineering-bench/github-token"
+
 echo "=============================================="
 echo "Engineering Bench - Sandbox Task Definition"
 echo "=============================================="
@@ -17,6 +19,7 @@ echo "AWS Profile:       $AWS_PROFILE"
 echo "AWS Region:        $AWS_REGION"
 echo "Task Definition:   $TASK_DEFINITION_FAMILY"
 echo "Task Role:         $TASK_ROLE_NAME"
+echo "GitHub Secret:     $GITHUB_SECRET_NAME"
 echo
 
 # ------------------------------------------------
@@ -78,6 +81,31 @@ echo "$TASK_ROLE_ARN"
 echo
 
 # ------------------------------------------------
+# Retrieve GitHub secret ARN
+# ------------------------------------------------
+
+echo "Retrieving GitHub token secret..."
+
+GITHUB_SECRET_ARN=$(
+    aws secretsmanager describe-secret \
+        --profile "$AWS_PROFILE" \
+        --region "$AWS_REGION" \
+        --secret-id "$GITHUB_SECRET_NAME" \
+        --query 'ARN' \
+        --output text
+)
+
+if [[ -z "$GITHUB_SECRET_ARN" || "$GITHUB_SECRET_ARN" == "None" ]]; then
+    echo "ERROR: GitHub token secret could not be found:"
+    echo "       $GITHUB_SECRET_NAME"
+    exit 1
+fi
+
+echo "GitHub secret ARN:"
+echo "$GITHUB_SECRET_ARN"
+echo
+
+# ------------------------------------------------
 # Retrieve current task definition
 # ------------------------------------------------
 
@@ -107,19 +135,33 @@ CURRENT_EXECUTION_ROLE=$(
         jq -r '.executionRoleArn // empty'
 )
 
+CURRENT_GITHUB_SECRET_ARN=$(
+    echo "$CURRENT_TASK_DEFINITION" |
+        jq -r '
+            .containerDefinitions[0].secrets[]?
+            | select(.name == "GITHUB_TOKEN")
+            | .valueFrom
+        '
+)
+
 echo "Current revision:      $CURRENT_REVISION"
 echo "Current task role:     ${CURRENT_TASK_ROLE:-none}"
 echo "Execution role:        ${CURRENT_EXECUTION_ROLE:-none}"
+echo "GitHub secret:         ${CURRENT_GITHUB_SECRET_ARN:-none}"
 echo
 
 # ------------------------------------------------
 # Idempotency check
 # ------------------------------------------------
 
-if [[ "$CURRENT_TASK_ROLE" == "$TASK_ROLE_ARN" ]]; then
+if [[ "$CURRENT_TASK_ROLE" == "$TASK_ROLE_ARN" &&
+      "$CURRENT_GITHUB_SECRET_ARN" == "$GITHUB_SECRET_ARN" ]]; then
 
     echo "The current task definition already uses:"
     echo "$TASK_ROLE_ARN"
+    echo
+    echo "and injects:"
+    echo "GITHUB_TOKEN <- $GITHUB_SECRET_NAME"
     echo
     echo "No new revision is required."
     echo
@@ -143,6 +185,7 @@ trap 'rm -f "$PAYLOAD_FILE"' EXIT
 echo "$CURRENT_TASK_DEFINITION" |
     jq \
         --arg taskRoleArn "$TASK_ROLE_ARN" \
+        --arg githubSecretArn "$GITHUB_SECRET_ARN" \
         '
         {
             family,
@@ -162,6 +205,13 @@ echo "$CURRENT_TASK_DEFINITION" |
             runtimePlatform,
             ephemeralStorage
         }
+        |
+        .containerDefinitions[0].secrets = [
+            {
+                name: "GITHUB_TOKEN",
+                valueFrom: $githubSecretArn
+            }
+        ]
         |
         with_entries(
             select(.value != null)
@@ -202,6 +252,15 @@ NEW_TASK_ROLE=$(
         jq -r '.taskRoleArn'
 )
 
+NEW_GITHUB_SECRET_ARN=$(
+    echo "$REGISTERED_TASK_DEFINITION" |
+        jq -r '
+            .containerDefinitions[0].secrets[]?
+            | select(.name == "GITHUB_TOKEN")
+            | .valueFrom
+        '
+)
+
 echo
 echo "=============================================="
 echo "Sandbox task definition updated"
@@ -219,5 +278,7 @@ echo
 echo "Task role ARN:"
 echo "$NEW_TASK_ROLE"
 echo
-echo "Use this revision for subsequent sandbox tasks."
+echo "GitHub secret:"
+echo "GITHUB_TOKEN <- $NEW_GITHUB_SECRET_ARN"
 echo
+echo "Use this revision for subsequent sandbox tasks."

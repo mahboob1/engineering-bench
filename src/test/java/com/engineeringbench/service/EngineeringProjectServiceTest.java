@@ -29,6 +29,10 @@ class EngineeringProjectServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
+                                "main"
+                        ),
                         "customer_docs",
                         new ProjectTechnology(
                                 "Java",
@@ -69,6 +73,10 @@ class EngineeringProjectServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
+                                "main"
+                        ),
                         "customer_docs",
                         new ProjectTechnology(
                                 "Java",
@@ -101,6 +109,10 @@ class EngineeringProjectServiceTest {
                         "Customer Service",
                         new RepositoryReference(
                                 "https://github.com/example/customer-service.git",
+                                "main"
+                        ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
                                 "main"
                         ),
                         "customer_docs",

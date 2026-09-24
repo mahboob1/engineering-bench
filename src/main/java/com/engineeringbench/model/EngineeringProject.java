@@ -5,7 +5,8 @@ import java.util.List;
 public record EngineeringProject(
         String id,
         String name,
-        RepositoryReference repository,
+        RepositoryReference sourceRepository,
+        RepositoryReference workingRepository,
         String collection,
         ProjectTechnology technology,
         List<ProjectCapability> capabilities

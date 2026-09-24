@@ -1,6 +1,7 @@
 package com.engineeringbench.tool;
 
 import com.engineeringbench.model.SandboxResult;
+import com.engineeringbench.model.SandboxRuntime;
 import com.engineeringbench.service.SandboxService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -45,6 +46,17 @@ public class RunCommandTool implements EngineeringTool {
                 repository,
                 revision,
                 List.of(command)
+        );
+    }
+
+    @Override
+    public SandboxResult execute(
+            SandboxRuntime runtime,
+            String command) {
+
+        return sandboxService.execute(
+                runtime,
+                command
         );
     }
 }

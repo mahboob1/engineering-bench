@@ -34,6 +34,10 @@ class EngineeringWorkspaceServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
+                                "main"
+                        ),
                         "customer_docs",
                         new ProjectTechnology(
                                 "Java",
@@ -100,6 +104,10 @@ class EngineeringWorkspaceServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
+                                "main"
+                        ),
                         "customer_docs",
                         new ProjectTechnology(
                                 "Java",
@@ -126,7 +134,7 @@ class EngineeringWorkspaceServiceTest {
                 );
 
         assertEquals(
-                "https://github.com/example/customer-service.git",
+                "https://github.com/example/engineering-bench-customer-service.git",
                 resolved.url()
         );
 
@@ -159,6 +167,10 @@ class EngineeringWorkspaceServiceTest {
                         "Customer Service",
                         new RepositoryReference(
                                 "https://github.com/example/customer-service.git",
+                                "main"
+                        ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
                                 "main"
                         ),
                         "customer_docs",
@@ -247,6 +259,10 @@ class EngineeringWorkspaceServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
+                                "main"
+                        ),
                         "customer_docs",
                         new ProjectTechnology(
                                 "Java",
@@ -321,6 +337,10 @@ class EngineeringWorkspaceServiceTest {
                                 "https://github.com/example/customer-service.git",
                                 "main"
                         ),
+                        new RepositoryReference(
+                                "https://github.com/example/engineering-bench-customer-service.git",
+                                "main"
+                        ),
                         "customer_docs",
                         new ProjectTechnology(
                                 "Java",
@@ -354,7 +374,7 @@ class EngineeringWorkspaceServiceTest {
                 );
 
         assertEquals(
-                "https://github.com/example/customer-service.git",
+                "https://github.com/example/engineering-bench-customer-service.git",
                 engineeringTask.repository()
         );
 

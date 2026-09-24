@@ -63,29 +63,55 @@ class FargateSandboxServiceTest {
             assertNotNull(runtime);
             assertNotNull(runtime.taskArn());
 
-            SandboxResult result =
+            SandboxResult firstResult =
                     service.execute(
                             runtime,
-                            "echo ECS_EXEC_PROGRAMMATIC_WORKS"
+                            "echo PERSISTENT_RUNTIME_FIRST"
                     );
 
-            assertNotNull(result);
+            SandboxResult secondResult =
+                    service.execute(
+                            runtime,
+                            "echo PERSISTENT_RUNTIME_SECOND"
+                    );
+
+            assertNotNull(firstResult);
+            assertNotNull(secondResult);
 
             System.out.println("========================================");
-            System.out.println("PROGRAMMATIC ECS EXEC TEST");
-            System.out.println("Exit Code: " + result.exitCode());
+            System.out.println("PERSISTENT ECS EXEC TEST");
+            System.out.println("Runtime ID: " + runtime.id());
+            System.out.println("Task ARN: " + runtime.taskArn());
+
+            System.out.println("First command:");
+            System.out.println("Exit Code: " + firstResult.exitCode());
             System.out.println("Output:");
-            System.out.println(result.stdout());
+            System.out.println(firstResult.stdout());
+
+            System.out.println("Second command:");
+            System.out.println("Exit Code: " + secondResult.exitCode());
+            System.out.println("Output:");
+            System.out.println(secondResult.stdout());
             System.out.println("========================================");
 
             assertEquals(
                     0,
-                    result.exitCode()
+                    firstResult.exitCode()
+            );
+
+            assertEquals(
+                    0,
+                    secondResult.exitCode()
             );
 
             assertTrue(
-                    result.stdout()
-                            .contains("ECS_EXEC_PROGRAMMATIC_WORKS")
+                    firstResult.stdout()
+                            .contains("PERSISTENT_RUNTIME_FIRST")
+            );
+
+            assertTrue(
+                    secondResult.stdout()
+                            .contains("PERSISTENT_RUNTIME_SECOND")
             );
 
         } finally {
@@ -96,5 +122,33 @@ class FargateSandboxServiceTest {
         }
     }
 
+    @Test
+    void shouldInitializeWorkingRepository() {
+
+        FargateSandboxService service =
+                new FargateSandboxService();
+
+        SandboxResult result =
+                service.initializeWorkingRepository(
+                        "https://github.com/spring-projects/spring-petclinic.git",
+                        "https://github.com/mahboob1/engineering-bench-petclinic.git"
+                );
+
+        assertNotNull(result);
+
+        System.out.println("========================================");
+        System.out.println("WORKING REPOSITORY INITIALIZATION TEST");
+        System.out.println("Exit Code: " + result.exitCode());
+        System.out.println("Output:");
+        System.out.println(result.stdout());
+        System.out.println("========================================");
+
+        assertEquals(0, result.exitCode());
+
+        assertTrue(
+                result.stdout()
+                        .contains("Working repository initialized successfully.")
+        );
+    }
 
 }

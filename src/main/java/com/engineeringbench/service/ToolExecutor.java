@@ -1,6 +1,7 @@
 package com.engineeringbench.service;
 
 import com.engineeringbench.model.SandboxResult;
+import com.engineeringbench.model.SandboxRuntime;
 import com.engineeringbench.tool.EngineeringTool;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,20 @@ public class ToolExecutor {
         return tool.execute(
                 repository,
                 revision,
+                command
+        );
+    }
+
+    public SandboxResult execute(
+            String toolName,
+            SandboxRuntime runtime,
+            String command) {
+
+        EngineeringTool tool =
+                findTool(toolName);
+
+        return tool.execute(
+                runtime,
                 command
         );
     }
