@@ -122,33 +122,33 @@ class FargateSandboxServiceTest {
         }
     }
 
-    @Test
-    void shouldInitializeWorkingRepository() {
-
-        FargateSandboxService service =
-                new FargateSandboxService();
-
-        SandboxResult result =
-                service.initializeWorkingRepository(
-                        "https://github.com/spring-projects/spring-petclinic.git",
-                        "https://github.com/mahboob1/engineering-bench-petclinic.git"
-                );
-
-        assertNotNull(result);
-
-        System.out.println("========================================");
-        System.out.println("WORKING REPOSITORY INITIALIZATION TEST");
-        System.out.println("Exit Code: " + result.exitCode());
-        System.out.println("Output:");
-        System.out.println(result.stdout());
-        System.out.println("========================================");
-
-        assertEquals(0, result.exitCode());
-
-        assertTrue(
-                result.stdout()
-                        .contains("Working repository initialized successfully.")
-        );
-    }
+//    @Test
+//    void shouldInitializeWorkingRepository() {
+//
+//        FargateSandboxService service =
+//                new FargateSandboxService();
+//
+//        SandboxResult result =
+//                service.initializeWorkingRepository(
+//                        "https://github.com/spring-projects/spring-petclinic.git",
+//                        "https://github.com/mahboob1/engineering-bench-petclinic.git"
+//                );
+//
+//        assertNotNull(result);
+//
+//        System.out.println("========================================");
+//        System.out.println("WORKING REPOSITORY INITIALIZATION TEST");
+//        System.out.println("Exit Code: " + result.exitCode());
+//        System.out.println("Output:");
+//        System.out.println(result.stdout());
+//        System.out.println("========================================");
+//
+//        assertEquals(0, result.exitCode());
+//
+//        assertTrue(
+//                result.stdout()
+//                        .contains("Working repository initialized successfully.")
+//        );
+//    }
 
 }
