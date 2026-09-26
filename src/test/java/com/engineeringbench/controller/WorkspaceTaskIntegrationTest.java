@@ -2,11 +2,14 @@ package com.engineeringbench.controller;
 
 import com.engineeringbench.model.EngineeringTask;
 import com.engineeringbench.service.EngineeringAgentService;
+import com.engineeringbench.service.EngineeringProjectRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -19,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class WorkspaceTaskIntegrationTest {
 
     @Autowired
@@ -26,6 +30,17 @@ class WorkspaceTaskIntegrationTest {
 
     @MockitoBean
     private EngineeringAgentService engineeringAgentService;
+
+    @Autowired
+    private EngineeringProjectRepository projectRepository;
+
+    @BeforeEach
+    void cleanupTestProjects() {
+        projectRepository.deleteById("project-integration-001");
+        projectRepository.deleteById("project-execution-001");
+        projectRepository.deleteById("project-result-001");
+        projectRepository.deleteById("project-lifecycle-001");
+    }
 
     @Test
     void shouldCreateProjectWorkspaceAndTaskThroughRealApplication() throws Exception {

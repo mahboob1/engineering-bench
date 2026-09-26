@@ -85,6 +85,56 @@ public class GithubRepositoryService {
         );
     }
 
+    public GithubRepository findRepository(String name) throws Exception {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        "https://api.github.com/repos/"
+                                + getAuthenticatedUsername()
+                                + "/"
+                                + name))
+                .header(
+                        "Authorization",
+                        "Bearer " + githubProperties.getGithubToken())
+                .header(
+                        "Accept",
+                        "application/vnd.github+json")
+                .header(
+                        "X-GitHub-Api-Version",
+                        "2022-11-28")
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 404) {
+            return null;
+        }
+
+        if (response.statusCode() != 200) {
+            throw new IOException(
+                    "GitHub repository lookup failed. "
+                            + "HTTP status: "
+                            + response.statusCode()
+                            + ", response: "
+                            + response.body());
+        }
+
+        JsonNode json =
+                objectMapper.readTree(response.body());
+
+        return new GithubRepository(
+                json.get("name").asText(),
+                json.get("full_name").asText(),
+                json.get("html_url").asText(),
+                json.get("clone_url").asText(),
+                json.get("private").asBoolean()
+        );
+    }
+
     private record CreateRepositoryRequest(
             String name,
             String description,
@@ -98,5 +148,41 @@ public class GithubRepositoryService {
             String htmlUrl,
             String cloneUrl,
             boolean privateRepository) {
+    }
+
+    private String getAuthenticatedUsername() throws Exception {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.github.com/user"))
+                .header(
+                        "Authorization",
+                        "Bearer " + githubProperties.getGithubToken())
+                .header(
+                        "Accept",
+                        "application/vnd.github+json")
+                .header(
+                        "X-GitHub-Api-Version",
+                        "2022-11-28")
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new IOException(
+                    "GitHub user lookup failed. "
+                            + "HTTP status: "
+                            + response.statusCode()
+                            + ", response: "
+                            + response.body());
+        }
+
+        JsonNode json =
+                objectMapper.readTree(response.body());
+
+        return json.get("login").asText();
     }
 }

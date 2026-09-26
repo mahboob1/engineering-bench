@@ -4,6 +4,10 @@ server:
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/engineering_bench}
+    username: ${DB_USERNAME:engineering_bench}
+    password: ${DB_PASSWORD}
   ai:
     mcp:
       server:

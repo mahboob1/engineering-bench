@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/engineering_bench
+    username: engineering_bench
+    password: engineering_bench_local
