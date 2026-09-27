@@ -6,21 +6,19 @@ import com.engineeringbench.model.WorkspaceTaskStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WorkspaceTaskService {
 
-    private final Map<String, WorkspaceTask> tasks =
-            new ConcurrentHashMap<>();
+    private final WorkspaceTaskRepository taskRepository;
 
     private final EngineeringWorkspaceService workspaceService;
 
     public WorkspaceTaskService(
+            WorkspaceTaskRepository taskRepository,
             EngineeringWorkspaceService workspaceService) {
 
+        this.taskRepository = taskRepository;
         this.workspaceService = workspaceService;
     }
 
@@ -39,7 +37,7 @@ public class WorkspaceTaskService {
             id = "task-" + java.util.UUID.randomUUID();
         }
 
-        if (tasks.containsKey(id)) {
+        if (taskRepository.findById(id).isPresent()) {
             throw new IllegalArgumentException(
                     "Workspace task already exists: "
                             + id);
@@ -52,14 +50,14 @@ public class WorkspaceTaskService {
                         task.task()
                 );
 
-        tasks.put(id, created);
+        taskRepository.save(created);
 
         return created;
     }
 
     public WorkspaceTask findById(String id) {
 
-        return Optional.ofNullable(tasks.get(id))
+        return taskRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Workspace task not found: "
@@ -67,25 +65,28 @@ public class WorkspaceTaskService {
     }
 
     public List<WorkspaceTask> findAll() {
-        return List.copyOf(tasks.values());
+
+        return taskRepository.findAll();
     }
 
     public boolean exists(String id) {
-        return tasks.containsKey(id);
+
+        return taskRepository.findById(id).isPresent();
     }
 
     public void delete(String id) {
 
-        if (!tasks.containsKey(id)) {
+        if (taskRepository.findById(id).isEmpty()) {
             throw new IllegalArgumentException(
                     "Workspace task not found: " + id);
         }
 
-        tasks.remove(id);
+        taskRepository.deleteById(id);
     }
 
     public long count() {
-        return tasks.size();
+
+        return taskRepository.count();
     }
 
     public EngineeringTask toEngineeringTask(
@@ -102,11 +103,9 @@ public class WorkspaceTaskService {
     public List<WorkspaceTask> findByWorkspaceId(
             String workspaceId) {
 
-        return tasks.values()
-                .stream()
-                .filter(task ->
-                        task.workspaceId().equals(workspaceId))
-                .toList();
+        return taskRepository.findByWorkspaceId(
+                workspaceId
+        );
     }
 
     public WorkspaceTask markRunning(String id) {
@@ -121,7 +120,7 @@ public class WorkspaceTaskService {
                         WorkspaceTaskStatus.RUNNING
                 );
 
-        tasks.put(id, updated);
+        taskRepository.save(updated);
 
         return updated;
     }
@@ -138,7 +137,7 @@ public class WorkspaceTaskService {
                         WorkspaceTaskStatus.COMPLETED
                 );
 
-        tasks.put(id, updated);
+        taskRepository.save(updated);
 
         return updated;
     }
@@ -155,7 +154,7 @@ public class WorkspaceTaskService {
                         WorkspaceTaskStatus.FAILED
                 );
 
-        tasks.put(id, updated);
+        taskRepository.save(updated);
 
         return updated;
     }

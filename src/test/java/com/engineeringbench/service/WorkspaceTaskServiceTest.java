@@ -18,7 +18,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -49,7 +49,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         WorkspaceTask task =
                 new WorkspaceTask(
@@ -73,7 +73,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -104,7 +104,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -148,7 +148,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -180,7 +180,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -218,7 +218,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -249,7 +249,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -341,6 +341,18 @@ class WorkspaceTaskServiceTest {
         );
     }
 
+    private WorkspaceTaskService createTaskService(
+            EngineeringWorkspaceService workspaceService) {
+
+        WorkspaceTaskRepository repository =
+                new InMemoryWorkspaceTaskRepository();
+
+        return new WorkspaceTaskService(
+                repository,
+                workspaceService
+        );
+    }
+
     private void createWorkspace(
             EngineeringProjectService projectService,
             EngineeringWorkspaceService workspaceService) {
@@ -387,7 +399,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -418,7 +430,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -453,7 +465,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
@@ -490,7 +502,7 @@ class WorkspaceTaskServiceTest {
                 createWorkspaceService(projectService);
 
         WorkspaceTaskService taskService =
-                new WorkspaceTaskService(workspaceService);
+                createTaskService(workspaceService);
 
         createWorkspace(
                 projectService,
