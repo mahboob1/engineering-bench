@@ -126,6 +126,8 @@ public class ApplyPatchTool implements EngineeringTool {
         String newText =
                 edit.get("newText").asText();
 
+        validateOldText(oldText);
+
         String encodedOldText =
                 Base64.getEncoder()
                         .encodeToString(
@@ -157,28 +159,32 @@ public class ApplyPatchTool implements EngineeringTool {
                     sys.argv[3]
                 ).decode("utf-8")
 
-                content = path.read_text()
-
-                if old_text not in content:
-                    raise SystemExit(
-                        "Original text was not found in target file."
+                if old_text == "" and not path.exists():
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(new_text)
+                else:
+                    content = path.read_text()
+    
+                    if old_text not in content:
+                        raise SystemExit(
+                            "Original text was not found in target file."
+                        )
+    
+                    occurrences = content.count(old_text)
+    
+                    if occurrences != 1:
+                        raise SystemExit(
+                            f"Original text occurs {occurrences} times; "
+                            "refusing to apply ambiguous change."
+                        )
+    
+                    updated = content.replace(
+                        old_text,
+                        new_text,
+                        1
                     )
-
-                occurrences = content.count(old_text)
-
-                if occurrences != 1:
-                    raise SystemExit(
-                        f"Original text occurs {occurrences} times; "
-                        "refusing to apply ambiguous change."
-                    )
-
-                updated = content.replace(
-                    old_text,
-                    new_text,
-                    1
-                )
-
-                path.write_text(updated)
+    
+                    path.write_text(updated)
 
                 print(
                     "Source change applied successfully."
@@ -228,6 +234,27 @@ public class ApplyPatchTool implements EngineeringTool {
 
             throw new IllegalArgumentException(
                     "File path must be repository-relative."
+            );
+        }
+    }
+
+    private void validateOldText(String oldText) {
+
+        if (oldText == null || oldText.isBlank()) {
+            throw new IllegalArgumentException(
+                    "oldText is required."
+            );
+        }
+
+        String trimmed = oldText.trim();
+
+        if (trimmed.equals("}")
+                || trimmed.equals("{")) {
+
+            throw new IllegalArgumentException(
+                    "Invalid oldText: patch context is too generic. "
+                            + "Use specific text copied from the "
+                            + "most recent read_file output."
             );
         }
     }

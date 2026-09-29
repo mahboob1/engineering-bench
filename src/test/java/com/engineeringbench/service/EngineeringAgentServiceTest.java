@@ -1387,7 +1387,7 @@ class EngineeringAgentServiceTest {
 
         verify(
                 engineeringAgent,
-                times(5)
+                times(8)
         ).decide(anyString());
 
         verify(

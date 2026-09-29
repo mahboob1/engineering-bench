@@ -1,5 +1,6 @@
 package com.engineeringbench.service;
 
+import com.engineeringbench.model.RepositoryReference;
 import com.engineeringbench.model.SearchResult;
 import com.engineeringbench.model.WorkspaceTask;
 import org.springframework.stereotype.Service;
@@ -31,11 +32,17 @@ public class RepositoryContextService {
                 workspaceService.resolveCollection(
                         workspaceTask.workspaceId()
                 );
+
+        RepositoryReference workingRepository =
+                workspaceService.resolveRepository(
+                        workspaceTask.workspaceId()
+                );
+
         List<SearchResult> results =
                 semanticSearchService.searchForAnalysis(
                         collection,
                         taskId,
-                        repository
+                        workingRepository.url()
                 );
 
         if (results.isEmpty()) {

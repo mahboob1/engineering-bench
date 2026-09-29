@@ -1,5 +1,7 @@
 package com.engineeringbench.service;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import com.engineeringbench.model.SandboxResult;
 import com.engineeringbench.model.SandboxRuntime;
 import org.springframework.stereotype.Service;
@@ -654,12 +656,12 @@ public class FargateSandboxService implements SandboxService {
             String command) {
 
         String sessionJson = """
-        {
-          "SessionId": "%s",
-          "StreamUrl": "%s",
-          "TokenValue": "%s"
-        }
-        """.formatted(
+    {
+      "SessionId": "%s",
+      "StreamUrl": "%s",
+      "TokenValue": "%s"
+    }
+    """.formatted(
                 escapeJson(response.session().sessionId()),
                 escapeJson(response.session().streamUrl()),
                 escapeJson(response.session().tokenValue())
@@ -709,18 +711,74 @@ public class FargateSandboxService implements SandboxService {
             Process process =
                     processBuilder.start();
 
-            System.out.println("session-manager-plugin started. Waiting for output...");
+            System.out.println(
+                    "session-manager-plugin started. " +
+                            "Waiting for remote command completion..."
+            );
 
-            String output =
-                    new String(
-                            process.getInputStream()
-                                    .readAllBytes()
+            CompletableFuture<String> outputFuture =
+                    CompletableFuture.supplyAsync(() -> {
+                        try {
+                            return new String(
+                                    process.getInputStream()
+                                            .readAllBytes()
+                            );
+                        } catch (IOException e) {
+                            throw new IllegalStateException(
+                                    "Failed to read session-manager-plugin output.",
+                                    e
+                            );
+                        }
+                    });
+
+            boolean completed =
+                    process.waitFor(
+                            10,
+                            TimeUnit.MINUTES
                     );
 
-            System.out.println("session-manager-plugin returned output.");
+            if (!completed) {
+
+                System.out.println(
+                        "ECS Exec command timed out after 10 minutes. " +
+                                "Terminating session-manager-plugin."
+                );
+
+                process.destroyForcibly();
+
+                String output = "";
+
+                try {
+                    output =
+                            outputFuture.get(
+                                    10,
+                                    TimeUnit.SECONDS
+                            );
+                } catch (Exception ignored) {
+                    output = "";
+                }
+
+                return new SandboxResult(
+                        124,
+                        output,
+                        "ECS Exec command timed out after 10 minutes.",
+                        "",
+                        command
+                );
+            }
+
+            String output =
+                    outputFuture.get(
+                            30,
+                            TimeUnit.SECONDS
+                    );
+
+            System.out.println(
+                    "session-manager-plugin returned output."
+            );
 
             int pluginExitCode =
-                    process.waitFor();
+                    process.exitValue();
 
             System.out.println(
                     "session-manager-plugin exit code: " +
@@ -772,6 +830,20 @@ public class FargateSandboxService implements SandboxService {
 
             throw new IllegalStateException(
                     "Interrupted while executing ECS Exec command.",
+                    e
+            );
+
+        } catch (java.util.concurrent.ExecutionException e) {
+
+            throw new IllegalStateException(
+                    "Failed while reading session-manager-plugin output.",
+                    e
+            );
+
+        } catch (java.util.concurrent.TimeoutException e) {
+
+            throw new IllegalStateException(
+                    "Timed out while reading session-manager-plugin output.",
                     e
             );
         }

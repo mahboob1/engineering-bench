@@ -116,6 +116,20 @@ public class EngineeringWorkspaceService {
         );
     }
 
+    public RepositoryReference resolveSourceRepository(
+            String workspaceId) {
+
+        EngineeringWorkspace workspace =
+                findById(workspaceId);
+
+        EngineeringProject project =
+                projectService.findById(
+                        workspace.projectId()
+                );
+
+        return project.sourceRepository();
+    }
+
     public EngineeringWorkspace create(
             String projectId,
             String workspaceId,

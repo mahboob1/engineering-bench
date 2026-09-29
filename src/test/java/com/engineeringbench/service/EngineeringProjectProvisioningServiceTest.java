@@ -29,12 +29,16 @@ class EngineeringProjectProvisioningServiceTest {
         EngineeringWorkspaceService workspaceService =
                 mock(EngineeringWorkspaceService.class);
 
+        GithubIngestionService githubIngestionService =
+                mock(GithubIngestionService.class);
+
         EngineeringProjectProvisioningService service =
                 new EngineeringProjectProvisioningService(
                         githubRepositoryService,
                         fargateSandboxService,
                         projectService,
-                        workspaceService
+                        workspaceService,
+                        githubIngestionService
                 );
 
         GithubRepositoryService.GithubRepository workingRepository =
@@ -119,6 +123,12 @@ class EngineeringProjectProvisioningServiceTest {
                         "https://github.com/mahboob1/engineering-bench-petclinic.git"
                 );
 
+        verify(githubIngestionService)
+                .ingestGithubUrl(
+                        "engineering_docs",
+                        "https://github.com/mahboob1/engineering-bench-petclinic.git"
+                );
+
         verify(projectService)
                 .create(any(EngineeringProject.class));
 
@@ -144,12 +154,16 @@ class EngineeringProjectProvisioningServiceTest {
         EngineeringWorkspaceService workspaceService =
                 mock(EngineeringWorkspaceService.class);
 
+        GithubIngestionService githubIngestionService =
+                mock(GithubIngestionService.class);
+
         EngineeringProjectProvisioningService service =
                 new EngineeringProjectProvisioningService(
                         githubRepositoryService,
                         fargateSandboxService,
                         projectService,
-                        workspaceService
+                        workspaceService,
+                        githubIngestionService
                 );
 
 

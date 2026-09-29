@@ -70,14 +70,27 @@ public class ReadFileTool implements EngineeringTool {
 
             String script = """
                     set -e
-
+            
                     FILE=$(echo "%s" | base64 -d)
-
+            
                     echo "Reading file: $FILE"
-
+            
                     test -f "$FILE"
-
-                    cat -- "$FILE"
+            
+                    python3 - "$FILE" <<'PY'
+                    import sys
+            
+                    file = sys.argv[1]
+            
+                    with open(file, "r", encoding="utf-8") as f:
+                        content = f.read()
+            
+                    content = content.replace("\\t", "\\\\t")
+                    content = content.replace("\\r", "\\\\r")
+                    content = content.replace("\\n", "\\\\n")
+            
+                    print(content)
+                    PY
                     """.formatted(encodedFile);
 
             return sandboxService.execute(
@@ -120,14 +133,27 @@ public class ReadFileTool implements EngineeringTool {
 
             String script = """
                     set -e
-
+            
                     FILE=$(echo "%s" | base64 -d)
-
+            
                     echo "Reading file: $FILE"
-
+            
                     test -f "$FILE"
-
-                    cat -- "$FILE"
+            
+                    python3 - "$FILE" <<'PY'
+                    import sys
+            
+                    file = sys.argv[1]
+            
+                    with open(file, "r", encoding="utf-8") as f:
+                        content = f.read()
+            
+                    content = content.replace("\\t", "\\\\t")
+                    content = content.replace("\\r", "\\\\r")
+                    content = content.replace("\\n", "\\\\n")
+            
+                    print(content)
+                    PY
                     """.formatted(encodedFile);
 
             return sandboxService.execute(

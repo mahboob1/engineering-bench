@@ -15,17 +15,20 @@ public class EngineeringProjectProvisioningService {
     private final FargateSandboxService fargateSandboxService;
     private final EngineeringProjectService projectService;
     private final EngineeringWorkspaceService workspaceService;
+    private final GithubIngestionService githubIngestionService;
 
     public EngineeringProjectProvisioningService(
             GithubRepositoryService githubRepositoryService,
             FargateSandboxService fargateSandboxService,
             EngineeringProjectService projectService,
-            EngineeringWorkspaceService workspaceService) {
+            EngineeringWorkspaceService workspaceService,
+            GithubIngestionService githubIngestionService) {
 
         this.githubRepositoryService = githubRepositoryService;
         this.fargateSandboxService = fargateSandboxService;
         this.projectService = projectService;
         this.workspaceService = workspaceService;
+        this.githubIngestionService = githubIngestionService;
     }
 
     public EngineeringProject provision(
@@ -54,6 +57,11 @@ public class EngineeringProjectProvisioningService {
 
             fargateSandboxService.initializeWorkingRepository(
                     sourceRepositoryUrl,
+                    workingRepository.cloneUrl()
+            );
+
+            githubIngestionService.ingestGithubUrl(
+                    collection,
                     workingRepository.cloneUrl()
             );
         }
